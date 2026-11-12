@@ -2,6 +2,8 @@
 
 Modelos de monografia (TCC) e de artigo científico já formatados segundo as normas da ABNT, para Word e LibreOffice.
 
+**Site:** https://ocaioaug.github.io/abnt-tcc/ reúne o verificador, o gerador de referências, os modelos para baixar e o passo a passo para instalar o painel no Word. É o link para mandar a quem quiser usar.
+
 ## Arquivos prontos (`dist/`)
 
 | Arquivo | Para quê |

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABNT para TCC</title>
+<meta name="description" content="Modelos, gerador de referências e verificador de formatação ABNT para TCC, no navegador e dentro do Word.">
+<link rel="icon" href="word-addin/icones/icone-32.png">
+<style>
+  :root {
+    --fundo: #f6f5f2; --cartao: #ffffff; --texto: #1d1d1f; --suave: #6b6b70; --borda: #dcdad5;
+    --destaque: #1f5fbf; --destaque-texto: #ffffff; --codigo: #f0efeb; --aviso-fundo: #fff4d6; --aviso: #8a5a00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fundo: #18181a; --cartao: #222225; --texto: #ececee; --suave: #a0a0a8; --borda: #3a3a3f;
+      --destaque: #6ea2ff; --destaque-texto: #0d1420; --codigo: #2c2c30; --aviso-fundo: #3b3115; --aviso: #f3d98a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .conteudo { max-width: 860px; margin: 0 auto; padding: 32px 16px 40px; }
+  nav { font-size: 14px; display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; }
+  a { color: var(--destaque); }
+  nav a { text-decoration: none; }
+  nav a[aria-current] { color: var(--texto); font-weight: 600; }
+  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.015em; }
+  .sub { color: var(--suave); margin: 0 0 28px; max-width: 62ch; }
+  h2 { font-size: 20px; margin: 36px 0 12px; }
+  h3 { font-size: 16px; margin: 0 0 4px; }
+  .grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .cartao { background: var(--cartao); border: 1px solid var(--borda); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+  .cartao p { margin: 0; color: var(--suave); font-size: 14.5px; flex: 1; }
+  .bt { align-self: flex-start; display: inline-block; margin-top: 8px; padding: 7px 14px; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none;
+        background: var(--destaque); color: var(--destaque-texto); }
+  .bt.sec { background: transparent; color: var(--destaque); border: 1px solid var(--borda); }
+  .passos { background: var(--cartao); border: 1px solid var(--borda); border-radius: 12px; padding: 18px 18px 18px 40px; margin: 0; }
+  .passos li { margin: 0 0 12px; }
+  .passos li:last-child { margin-bottom: 0; }
+  .passos small { display: block; color: var(--suave); }
+  code { background: var(--codigo); border-radius: 5px; padding: 1px 6px; font-size: 14px; overflow-wrap: anywhere; }
+  .menu { font-weight: 600; }
+  .nota { background: var(--aviso-fundo); color: var(--aviso); border-radius: 10px; padding: 10px 14px; font-size: 14.5px; margin: 12px 0 0; }
+  details { background: var(--cartao); border: 1px solid var(--borda); border-radius: 12px; padding: 14px 18px; margin-top: 12px; }
+  details summary { cursor: pointer; font-weight: 600; }
+  details[open] summary { margin-bottom: 10px; }
+  footer { color: var(--suave); font-size: 13.5px; margin-top: 40px; border-top: 1px solid var(--borda); padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="conteudo">
+  <nav>
+    <a href="index.html" aria-current="page">Início</a>
+    <a href="verificador/index.html">Verificador de formatação</a>
+    <a href="referencias/index.html">Gerador de referências</a>
+  </nav>
+
+  <h1>ABNT para TCC</h1>
+  <p class="sub">Modelos prontos, gerador de referências e verificador de formatação para TCC e artigos nas normas da ABNT. Funciona no navegador, sem instalar nada, ou dentro do Word, como um painel lateral.</p>
+
+  <h2>Usar no navegador</h2>
+  <div class="grade">
+    <div class="cartao">
+      <h3>Verificador de formatação</h3>
+      <p>Arraste o .docx do trabalho e veja o que está fora da norma: margens, fonte, espaçamento, títulos, citações, ilustrações, resumo e referências. O arquivo é lido no seu computador; nada é enviado.</p>
+      <a class="bt" href="verificador/index.html">Abrir o verificador</a>
+    </div>
+    <div class="cartao">
+      <h3>Gerador de referências</h3>
+      <p>Preencha os dados da obra e receba a referência (NBR 6023) e a citação no formato de 2023, por exemplo (Gil, 2017). Copie a lista já em ordem alfabética.</p>
+      <a class="bt" href="referencias/index.html">Abrir o gerador</a>
+    </div>
+  </div>
+
+  <h2>Modelos para o Word</h2>
+  <div class="grade">
+    <div class="cartao">
+      <h3>Monografia / TCC</h3>
+      <p>NBR 14724: capa, folha de rosto, resumo, abstract, sumário automático, capítulos numerados, referências, apêndice e anexo.</p>
+      <a class="bt" href="dist/Modelo-TCC-Monografia-ABNT.dotx">Baixar modelo (.dotx)</a>
+      <a class="bt sec" href="dist/Modelo-TCC-Monografia-ABNT.pdf">Ver prévia (PDF)</a>
+    </div>
+    <div class="cartao">
+      <h3>Artigo científico</h3>
+      <p>NBR 6022: título, autoria, resumo e abstract, texto corrido com seções numeradas, referências e pós-textuais.</p>
+      <a class="bt" href="dist/Modelo-Artigo-ABNT.dotx">Baixar modelo (.dotx)</a>
+      <a class="bt sec" href="dist/Modelo-Artigo-ABNT.pdf">Ver prévia (PDF)</a>
+    </div>
+  </div>
+  <p class="nota">Dê dois cliques no .dotx baixado: o Word cria um documento novo com tudo configurado. As caixas amarelas são orientações; apague-as antes de entregar.</p>
+
+  <h2>Painel dentro do Word</h2>
+  <p>O painel verifica o documento aberto, leva até cada problema, corrige a formatação com um clique, reordena as referências e insere referências e citações. Escolha como você usa o Word:</p>
+
+  <details open>
+    <summary>Word instalado no Windows</summary>
+    <ol class="passos">
+      <li>Crie uma pasta, por exemplo <code>Documentos\abnt-catalogo-office</code>, e salve dentro dela o arquivo
+        <a href="word-addin/manifest-publicado.xml" download="abnt-para-tcc.xml">abnt-para-tcc.xml</a>.
+        <small>Se o navegador abrir o arquivo em vez de baixar: botão direito no link &gt; Salvar link como.</small></li>
+      <li>Compartilhe a pasta: botão direito na pasta &gt; <span class="menu">Propriedades &gt; Compartilhamento &gt; Compartilhamento Avançado</span> &gt; marque <span class="menu">Compartilhar esta pasta</span> &gt; OK.
+        <small>Anote o “Caminho de rede” que aparece, no formato <code>\\NOME-DO-PC\abnt-catalogo-office</code>. O compartilhamento é só de leitura.</small></li>
+      <li>No Word: <span class="menu">Arquivo &gt; Opções &gt; Central de Confiabilidade &gt; Configurações da Central de Confiabilidade &gt; Catálogos de Suplementos Confiáveis</span>.
+        Cole o caminho de rede em “URL do Catálogo”, clique em <span class="menu">Adicionar catálogo</span>, marque <span class="menu">Mostrar no Menu</span> e dê OK.</li>
+      <li>Feche o Word inteiro e abra de novo. Vá em <span class="menu">Página Inicial &gt; Suplementos &gt; Mais suplementos &gt; Pasta compartilhada</span>, escolha <span class="menu">ABNT para TCC</span> e clique em <span class="menu">Adicionar</span>.</li>
+      <li>Pronto: o botão <span class="menu">Painel ABNT</span> aparece na guia Página Inicial.</li>
+    </ol>
+  </details>
+
+  <details>
+    <summary>Word na web (office.com)</summary>
+    <ol class="passos">
+      <li>Salve o arquivo <a href="word-addin/manifest-publicado.xml" download="abnt-para-tcc.xml">abnt-para-tcc.xml</a> no computador.</li>
+      <li>Abra um documento no Word na web e vá em <span class="menu">Página Inicial &gt; Suplementos &gt; Mais suplementos &gt; Meus suplementos &gt; Carregar meu suplemento</span>.</li>
+      <li>Escolha o arquivo salvo e clique em <span class="menu">Carregar</span>.</li>
+    </ol>
+  </details>
+
+  <p class="nota">O painel é carregado deste site. Quando sair uma versão nova, basta fechar e abrir o painel. Requer Word 2019 ou mais recente, ou Microsoft 365.</p>
+
+  <footer>
+    Baseado nas normas ABNT NBR 14724:2011, 6022:2018, 6023:2018, 6024:2012, 6027:2012, 6028:2021 e 10520:2023. É uma ajuda automática: a revisão final continua sendo sua e do seu orientador, e cursos e revistas podem ter regras próprias.
+    Código-fonte no <a href="https://github.com/oCaioAug/abnt-tcc">GitHub</a>.
+  </footer>
+</div>
+</body>
+</html>
