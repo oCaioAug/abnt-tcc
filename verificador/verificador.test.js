@@ -53,6 +53,20 @@ test("o modelo de monografia é reconhecido como monografia", { skip: !fs.exists
   assert.equal(r.tipo, "monografia");
 });
 
+test("toda regra informa a norma em que se baseia e explica a exigência", { skip: !fs.existsSync(MODELO) }, async () => {
+  const { NORMAS } = require("./verificador");
+  for (const [arq, artigo] of [[MODELO, false], [ARTIGO, true]]) {
+    if (!fs.existsSync(arq)) continue;
+    const r = await rodar(fs.readFileSync(arq));
+    for (const it of r.itens) {
+      assert.ok(it.norma && it.explicacao, `${it.id} sem norma/explicação`);
+      if (/NBR/.test(it.norma)) assert.ok(it.normas.length, `${it.id}: ${it.norma} não está na lista de normas`);
+    }
+    assert.equal(r.itens.find((x) => x.id === "estrutura").norma, artigo ? "NBR 6022:2018" : "NBR 14724:2011, 4");
+  }
+  assert.ok(NORMAS.length >= 7 && NORMAS.every((n) => /^NBR \d+:\d{4}$/.test(n.codigo) && n.titulo && n.trata));
+});
+
 // ------------------------------------------------------------ um TCC cheio de erros
 async function documentoComErros() {
   const corpo = { font: "Times New Roman", size: 22 }; // 11 pt

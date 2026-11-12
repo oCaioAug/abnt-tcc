@@ -275,6 +275,117 @@
   // tamanhos de fonte efetivos do texto visível (ignora sobrescritos: chamadas de nota)
   const tamanhos = (b) => [...new Set(b.runs.filter((r) => r.texto.trim() && !r.props.sobrescrito).map((r) => r.props.tamanho ?? 10))];
 
+  // ---------------------------------------------------------------- normas
+  // Normas usadas como base. As explicações são resumos com palavras próprias (o texto das
+  // normas é protegido e vendido pela ABNT); o número do item só aparece quando é certo.
+  const NORMAS = [
+    { codigo: "NBR 14724:2011", titulo: "Trabalhos acadêmicos — Apresentação",
+      trata: "Estrutura de TCCs, dissertações e teses (elementos pré-textuais, textuais e pós-textuais) e regras de formatação: papel, margens, fonte, espaçamento, paginação, ilustrações e tabelas." },
+    { codigo: "NBR 6022:2018", titulo: "Artigo em publicação periódica técnica e/ou científica — Apresentação",
+      trata: "Estrutura do artigo: título, autoria, resumos, datas, introdução, desenvolvimento, considerações finais e pós-textuais." },
+    { codigo: "NBR 6023:2018", titulo: "Referências — Elaboração",
+      trata: "Como escrever cada tipo de referência e como apresentar a lista (alinhamento, espaçamento e ordenação)." },
+    { codigo: "NBR 6024:2012", titulo: "Numeração progressiva das seções de um documento — Apresentação",
+      trata: "Numeração das seções (1, 1.1, 1.1.1...), até a seção quinária, e destaque gráfico dos títulos de cada nível." },
+    { codigo: "NBR 6027:2012", titulo: "Sumário — Apresentação",
+      trata: "Como montar o sumário: títulos e numeração iguais aos do texto, com a página de início de cada seção." },
+    { codigo: "NBR 6028:2021", titulo: "Resumo, resenha e recensão — Apresentação",
+      trata: "Resumo em parágrafo único, extensão por tipo de documento e palavras-chave logo abaixo." },
+    { codigo: "NBR 10520:2023", titulo: "Citações em documentos — Apresentação",
+      trata: "Citações diretas e indiretas, citações longas e o formato da chamada de autoria (desde 2023, sobrenome só com a inicial maiúscula)." },
+  ];
+
+  // Para cada regra: a norma em que se baseia e a exigência explicada em poucas palavras.
+  // Funções recebem `artigo` (true quando o documento foi verificado como artigo).
+  const REGRAS = {
+    estrutura: {
+      norma: (artigo) => (artigo ? "NBR 6022:2018" : "NBR 14724:2011, 4"),
+      explica: (artigo) => (artigo
+        ? "O artigo tem como obrigatórios: título, autoria, resumo no idioma do texto, introdução, desenvolvimento, considerações finais e referências. O resumo em outro idioma é opcional na norma."
+        : "Entre os elementos obrigatórios da monografia estão folha de rosto, resumo, resumo em língua estrangeira, sumário, introdução, desenvolvimento, conclusão e referências."),
+    },
+    papel: { norma: "NBR 14724:2011, 5.1", explica: "O trabalho é apresentado em papel A4 (21 × 29,7 cm)." },
+    margens: {
+      norma: "NBR 14724:2011, 5.1",
+      explica: "Margens de 3 cm na parte superior e na esquerda e de 2 cm na inferior e na direita. Em páginas em paisagem, as margens giram junto com a página.",
+    },
+    paginacao: {
+      norma: "NBR 14724:2011, 5.3",
+      explica: "As folhas são contadas a partir da folha de rosto, mas o número só aparece a partir da primeira folha do texto (Introdução), no canto superior direito.",
+    },
+    "fonte-tamanho": {
+      norma: "NBR 14724:2011, 5.1",
+      explica: "Fonte tamanho 12 em todo o texto. Citações longas, notas de rodapé, paginação, legendas e fontes das ilustrações e tabelas usam tamanho menor e uniforme.",
+    },
+    "fonte-familia": {
+      norma: "Recomendação",
+      explica: "A ABNT não define qual fonte usar, mas o trabalho deve ter uma só. Arial e Times New Roman são as mais aceitas pelas instituições.",
+    },
+    espacamento: {
+      norma: "NBR 14724:2011",
+      explica: "O texto usa espaçamento de 1,5 entre linhas. Citações longas, notas de rodapé, referências, legendas e a natureza do trabalho usam espaçamento simples.",
+    },
+    alinhamento: {
+      norma: "Prática recomendada",
+      explica: "A ABNT não exige texto justificado, mas é o padrão adotado pelas instituições e pelos modelos.",
+    },
+    "citacao-longa": {
+      norma: "NBR 10520:2023 e NBR 14724:2011",
+      explica: "Citação direta com mais de três linhas: recuo de 4 cm da margem esquerda, fonte menor que a do texto, espaçamento simples e sem aspas.",
+    },
+    "titulo-pagina": {
+      norma: (artigo) => (artigo ? "NBR 6022:2018" : "NBR 14724:2011"),
+      explica: (artigo) => (artigo
+        ? "No artigo o texto é corrido: as seções não começam em página nova."
+        : "Seções primárias (1 INTRODUÇÃO, 2 ...) e títulos sem número (RESUMO, SUMÁRIO, REFERÊNCIAS...) começam em página nova, no alto da página."),
+    },
+    "titulo-numero": {
+      norma: "NBR 6024:2012",
+      explica: "As seções do texto são numeradas em algarismos arábicos (1, 1.1, 1.1.1...). Elementos como resumo, sumário, referências, apêndices e anexos não têm número; apêndices e anexos são identificados por letra, travessão e título.",
+    },
+    "titulo-centralizado": {
+      norma: "NBR 14724:2011",
+      explica: "Títulos sem indicativo numérico (errata, agradecimentos, listas, resumos, sumário, referências, glossário, apêndices, anexos e índices) são centralizados.",
+    },
+    "titulo-hierarquia": {
+      norma: "NBR 6024:2012",
+      explica: "Uma seção só existe dentro da anterior: 1.1.1 fica dentro de 1.1, que fica dentro de 1. A numeração vai até a seção quinária (1.1.1.1.1).",
+    },
+    "titulo-esquerda": {
+      norma: "NBR 6024:2012",
+      explica: "O título da seção vem depois do número, separado por um espaço, e fica alinhado à margem esquerda.",
+    },
+    "titulo-tamanho": {
+      norma: "NBR 14724:2011, 5.1",
+      explica: "Os títulos usam o mesmo tamanho 12 do texto. A diferença entre os níveis é feita com negrito, itálico ou maiúsculas, igual no texto e no sumário.",
+    },
+    referencias: {
+      norma: "NBR 6023:2018",
+      explica: "As referências ficam alinhadas à margem esquerda, em espaçamento simples, separadas umas das outras por uma linha em branco de espaço simples, e ordenadas alfabeticamente pela entrada (sobrenome ou instituição).",
+    },
+    "citacao-2023": {
+      norma: "NBR 10520:2023",
+      explica: "Desde a versão de 2023, o sobrenome do autor na citação é escrito só com a inicial maiúscula, tanto no texto quanto entre parênteses: (Silva, 2020). Siglas de instituições continuam em maiúsculas.",
+    },
+    ilustracoes: {
+      norma: "NBR 14724:2011, 5.8 e 5.9",
+      explica: "A identificação da ilustração ou tabela (Figura 1 – Título) fica acima dela, e a fonte (Fonte: Autor, ano) fica abaixo, ambas em tamanho menor. Tabelas seguem as Normas de apresentação tabular do IBGE.",
+    },
+    notas: {
+      norma: "NBR 14724:2011",
+      explica: "Notas de rodapé ficam dentro da margem, em fonte menor que a do texto e espaçamento simples.",
+    },
+    resumo: {
+      norma: "NBR 6028:2021",
+      explica: (artigo) => `Resumo em parágrafo único, com ${artigo ? "100 a 250 palavras em artigos" : "150 a 500 palavras em trabalhos acadêmicos"}, seguido das palavras-chave, separadas por ponto e vírgula e finalizadas por ponto.`,
+    },
+    modelo: {
+      norma: "Do modelo",
+      explica: "As caixas amarelas e os textos entre colchetes são orientações do modelo e devem sair antes da entrega.",
+    },
+  };
+  const valor = (x, artigo) => (typeof x === "function" ? x(artigo) : x);
+
   // ---------------------------------------------------------------- verificação
   function analisar(arquivos, DOMParserCls, opcoes = {}) {
     const parser = new DOMParserCls();
@@ -667,6 +778,14 @@
       r.msg(r.it.nivel === "ok" ? "Nenhuma sobra do modelo." : "Apague as caixas amarelas e substitua os textos entre colchetes antes de entregar.");
     }
 
+    // norma e explicação de cada regra (fonte única: REGRAS)
+    for (const it of rel.itens) {
+      const meta = REGRAS[it.id];
+      if (!meta) continue;
+      it.norma = valor(meta.norma, artigo);
+      it.explicacao = valor(meta.explica, artigo);
+      it.normas = NORMAS.map((n) => n.codigo).filter((c) => it.norma.includes(c));
+    }
     const resumo = { erro: 0, aviso: 0, ok: 0, info: 0 };
     for (const it of rel.itens) resumo[it.nivel]++;
     return {
@@ -694,5 +813,5 @@
     return analisar(await lerDocx(dados, JSZip), DOMParser, { tipo });
   }
 
-  return { verificar, analisar, lerDocx };
+  return { verificar, analisar, lerDocx, NORMAS, REGRAS };
 });

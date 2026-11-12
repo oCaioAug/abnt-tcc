@@ -19,13 +19,20 @@
   }
 
   // ------------------------------------------------------------------ abas
-  for (const [aba, painel] of [["aba-verificar", "p-verificar"], ["aba-refs", "p-refs"]]) {
+  const ABAS = [["aba-verificar", "p-verificar"], ["aba-refs", "p-refs"], ["aba-normas", "p-normas"]];
+  for (const [aba, painel] of ABAS) {
     $(aba).onclick = () => {
       for (const b of document.querySelectorAll(".abas button")) b.setAttribute("aria-selected", String(b.id === aba));
-      $("p-verificar").hidden = painel !== "p-verificar";
-      $("p-refs").hidden = painel !== "p-refs";
+      for (const [, p] of ABAS) $(p).hidden = p !== painel;
     };
   }
+
+  // ------------------------------------------------------------------ normas
+  // Lista das normas usadas (aba Normas) e o "Por que?" de cada regra do relatório.
+  $("lista-normas").innerHTML = VerificadorABNT.NORMAS.map((n) => `<div class="norma-cartao">
+      <strong>ABNT ${esc(n.codigo)}</strong><span class="norma-tit">${esc(n.titulo)}</span>
+      <p>${esc(n.trata)}</p></div>`).join("");
+  const porque = (it) => (it.explicacao ? `<details class="porque"><summary>Por que? <span>${esc(it.norma)}</span></summary><p>${esc(it.explicacao)}</p></details>` : "");
 
   // ------------------------------------------------------------------ ler o documento aberto
   // Pede ao Word o documento atual (inclusive o que ainda não foi salvo) como .docx.
@@ -100,7 +107,9 @@
     const auto = noWord ? automaticas(it).length : 0;
     return `<details class="regra ${it.nivel}"${aberta ? " open" : ""}>
       <summary><span class="selo">${ROTULO[it.nivel]}</span><span class="tit">${esc(it.titulo)}</span>
+        <span class="norma-selo">${esc(it.norma)}</span>
         <span class="msg">${esc(it.mensagem)}</span></summary>
+      ${porque(it)}
       ${auto ? `<div class="corrigir-regra"><button class="bt prim mini" type="button" data-corrigir-regra="${ri}">Corrigir ${auto > 1 ? `os ${auto} itens` : "este item"}</button></div>` : ""}
       ${lis ? `<ul class="ocorr">${lis}</ul>` : ""}
       ${it.ocorrencias.length > MOSTRAR ? `<button class="mais" type="button">Mostrar mais ${it.ocorrencias.length - MOSTRAR}</button>` : ""}

@@ -50,25 +50,27 @@ Abra `verificador/index.html` no navegador e arraste o seu TCC em `.docx`. No Li
 
 O relatório separa **erros**, **pontos de atenção** e **o que está dentro da norma**, e mostra o trecho do texto onde está cada problema. Ele confere:
 
-| Item | Norma |
+| Item | Base |
 |---|---|
-| Presença de resumo, abstract, sumário, introdução e referências | NBR 14724 |
-| Papel A4 e margens (3/3/2/2 cm) | NBR 14724, 5.1 |
-| Número da página no cabeçalho, à direita | NBR 14724, 5.3 |
-| Texto em tamanho 12, espaçamento 1,5 e uma só fonte | NBR 14724, 5.1 e 5.2 |
-| Citações longas: recuo de 4 cm, fonte menor, espaçamento simples, sem aspas | NBR 10520:2023 |
+| Elementos obrigatórios (monografia: resumo, abstract, sumário, introdução, referências; artigo: resumo, introdução, referências) | NBR 14724:2011, 4 / NBR 6022:2018 |
+| Papel A4 e margens (3/3/2/2 cm) | NBR 14724:2011, 5.1 |
+| Número da página no cabeçalho, à direita | NBR 14724:2011, 5.3 |
+| Texto e títulos em tamanho 12 | NBR 14724:2011, 5.1 |
+| Espaçamento 1,5 no texto | NBR 14724:2011 |
+| Uma só fonte no trabalho | Recomendação (a ABNT não fixa a família) |
+| Texto justificado | Prática recomendada (não exigida pela ABNT) |
+| Citações longas: recuo de 4 cm, fonte menor, espaçamento simples, sem aspas | NBR 10520:2023 e NBR 14724:2011 |
 | Sobrenome nas citações só com a inicial maiúscula, ex.: (Silva, 2020) | NBR 10520:2023 |
-| Seções primárias em nova página, numeradas, com hierarquia correta | NBR 14724 e 6024 |
-| Títulos sem número (resumo, sumário, referências…) centralizados | NBR 14724, 5.2.2 |
-| Títulos numerados alinhados à esquerda | NBR 6024:2012 |
-| Títulos em tamanho 12, como o texto | NBR 14724, 5.1 |
-| Parágrafos numa fonte diferente da principal | NBR 14724, 5.1 (recomendação) |
-| Apêndices e anexos no formato “APÊNDICE A – Título” | NBR 14724, 4.3 |
-| Ilustrações e tabelas com título acima e “Fonte:” abaixo | NBR 14724, 5.8 e 5.9 |
-| Notas de rodapé em fonte menor e espaçamento simples | NBR 14724, 5.2 |
-| Resumo em parágrafo único, de 150 a 500 palavras, com palavras-chave | NBR 6028:2021 |
-| Referências alinhadas à esquerda, espaçamento simples, em ordem alfabética | NBR 6023:2018 |
-| Orientações e textos “[entre colchetes]” do modelo ainda não apagados | — |
+| Seções primárias e títulos sem número em página nova (só na monografia) | NBR 14724:2011 |
+| Seções numeradas, com hierarquia correta e título à esquerda; apêndices como “APÊNDICE A – Título” | NBR 6024:2012 |
+| Títulos sem número (resumo, sumário, referências…) centralizados | NBR 14724:2011 |
+| Ilustrações e tabelas com título acima e “Fonte:” abaixo | NBR 14724:2011, 5.8 e 5.9 (tabelas: IBGE) |
+| Notas de rodapé em fonte menor e espaçamento simples | NBR 14724:2011 |
+| Resumo em parágrafo único (150 a 500 palavras; artigo: 100 a 250), com palavras-chave | NBR 6028:2021 |
+| Referências alinhadas à esquerda, espaçamento simples, separadas e em ordem alfabética | NBR 6023:2018 |
+| Orientações e textos “[entre colchetes]” do modelo ainda não apagados | Do modelo |
+
+Em cada item do relatório, **Por que?** mostra a norma e o que ela pede, resumido com palavras nossas (o texto das normas é protegido e vendido pela ABNT). O número do item da norma só aparece quando é certo; nos outros casos, vai só o nome da norma. As normas e as explicações ficam em `NORMAS` e `REGRAS`, em `verificador/verificador.js`.
 
 O verificador detecta sozinho se o trabalho é **monografia** ou **artigo** (o artigo não tem sumário e chega logo à introdução) e mostra qual tipo usou; dá para escolher o tipo à mão no topo da página. No artigo, a regra de página nova não se aplica, o abstract e o sumário não são exigidos e o resumo vai de 100 a 250 palavras.
 
@@ -125,7 +127,19 @@ Para publicar em outro endereço https, gere o manifest com `node word-addin/ger
 - Estrutura completa da NBR 14724: capa, folha de rosto, ficha catalográfica, folha de aprovação, dedicatória, agradecimentos, epígrafe, resumo, abstract, listas, sumário, capítulos, referências, apêndice e anexo.
 - Exemplos de citação (NBR 10520:2023) e de referência (NBR 6023:2018).
 
-Normas usadas: NBR 14724:2011, 6024:2012, 6027:2012, 6028:2021, 10520:2023 e 6023:2018.
+## Normas usadas
+
+| Norma | Assunto |
+|---|---|
+| ABNT NBR 14724:2011 | Trabalhos acadêmicos — Apresentação |
+| ABNT NBR 6022:2018 | Artigo em publicação periódica técnica e/ou científica — Apresentação |
+| ABNT NBR 6023:2018 | Referências — Elaboração |
+| ABNT NBR 6024:2012 | Numeração progressiva das seções de um documento — Apresentação |
+| ABNT NBR 6027:2012 | Sumário — Apresentação |
+| ABNT NBR 6028:2021 | Resumo, resenha e recensão — Apresentação |
+| ABNT NBR 10520:2023 | Citações em documentos — Apresentação |
+
+Tabelas seguem também as Normas de apresentação tabular do IBGE. O texto completo das normas é vendido pela ABNT ([catálogo da ABNT](https://www.abntcatalogo.com.br/)); muitas faculdades dão acesso gratuito pela biblioteca (ABNT Coleção ou Target GEDWeb).
 
 ## Gerar o modelo de novo (para quem for alterar)
 

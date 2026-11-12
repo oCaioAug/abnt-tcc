@@ -48,8 +48,8 @@
   .veredito { margin: 12px 0 0; color: var(--suave); }
 
   .regra { border: 1px solid var(--borda); border-radius: 10px; margin-top: 10px; overflow: hidden; background: var(--cartao); }
-  .regra summary { list-style: none; cursor: pointer; padding: 12px 14px; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; }
-  .regra summary::-webkit-details-marker { display: none; }
+  .regra > summary { list-style: none; cursor: pointer; padding: 12px 14px; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; }
+  .regra > summary::-webkit-details-marker { display: none; }
   .selo { grid-row: span 2; align-self: start; border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
   .erro .selo { background: var(--erro-fundo); color: var(--erro); }
   .aviso .selo { background: var(--aviso-fundo); color: var(--aviso); }
@@ -68,6 +68,16 @@
   h3.grupo { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); margin: 18px 0 0; }
   .falha { background: var(--erro-fundo); color: var(--erro); border-radius: 10px; padding: 12px 14px; }
   footer { color: var(--suave); font-size: 13px; padding-bottom: 28px; }
+  .porque { margin: 0 14px 10px; font-size: 13.5px; }
+  .porque summary { cursor: pointer; color: var(--destaque); font-weight: 600; }
+  .porque summary span { color: var(--suave); font-weight: 400; }
+  .porque p { margin: 6px 0 0; background: var(--info-fundo); border-radius: 8px; padding: 8px 10px; }
+  .normas summary { cursor: pointer; }
+  .normas a { color: var(--destaque); }
+  #lista-normas { display: grid; gap: 10px; margin-top: 10px; }
+  #lista-normas div { border-left: 3px solid var(--borda); padding-left: 10px; }
+  #lista-normas span { display: block; color: var(--suave); font-size: 14px; }
+  #lista-normas p { margin: 4px 0 0; font-size: 14px; }
 </style>
 </head>
 <body>
@@ -90,6 +100,12 @@
     <span>ou clique para escolher. No LibreOffice, salve antes como “Word 2007-365 (.docx)”.</span>
   </label>
   <div id="resultado" aria-live="polite"></div>
+  <details class="cartao normas">
+    <summary><strong>Normas usadas</strong></summary>
+    <p class="veredito">Em cada item do relatório, “Por que?” mostra a norma e o que ela pede, resumido com palavras nossas.</p>
+    <div id="lista-normas"></div>
+    <p class="veredito">O texto completo das normas é vendido pela ABNT no <a href="https://www.abntcatalogo.com.br/" target="_blank" rel="noopener">catálogo da ABNT</a>. Muitas faculdades dão acesso gratuito pela biblioteca (ABNT Coleção ou Target GEDWeb): pergunte na sua. Tabelas seguem também as Normas de apresentação tabular do IBGE.</p>
+  </details>
 </main>
 
 <footer>
@@ -109,6 +125,8 @@
   const NOME_TIPO = { monografia: "monografia (NBR 14724)", artigo: "artigo (NBR 6022)" };
   const linhaTipo = (rel) => `<p class="veredito">Verificado como ${NOME_TIPO[rel.tipo]}${rel.tipoDetectado ? " (detectado automaticamente; mude acima se estiver errado)" : ""}.</p>`;
   let ultimo = null;
+  $("lista-normas").innerHTML = VerificadorABNT.NORMAS.map((n) =>
+    `<div><strong>ABNT ${esc(n.codigo)}</strong><span>${esc(n.titulo)}</span><p>${esc(n.trata)}</p></div>`).join("");
 
   async function processar(arquivo) {
     if (!arquivo) return;
@@ -138,6 +156,7 @@
       <summary><span class="selo">${ROTULO[it.nivel]}</span>
         <span class="tit">${esc(it.titulo)}<small>${esc(it.norma)}</small></span>
         <span class="msg">${esc(it.mensagem)}</span></summary>
+      ${it.explicacao ? `<details class="porque"><summary>Por que? <span>${esc(it.norma)}</span></summary><p>${esc(it.explicacao)}</p></details>` : ""}
       ${lis ? `<ul class="ocorr">${lis}</ul>` : ""}
       ${it.ocorrencias.length > MOSTRAR ? `<button class="mais" type="button">Mostrar mais ${it.ocorrencias.length - MOSTRAR}</button>` : ""}
     </details>`;
