@@ -1,0 +1,140 @@
+# Modelo ABNT para TCC
+
+Modelo de monografia (TCC) já formatado segundo as normas da ABNT, para Word e LibreOffice.
+
+## Arquivos prontos (`dist/`)
+
+| Arquivo | Para quê |
+|---|---|
+| `Modelo-TCC-Monografia-ABNT.dotx` | Modelo do Word. Dar dois cliques cria um documento novo com tudo configurado. Também abre no LibreOffice. |
+| `Modelo-TCC-Monografia-ABNT.docx` | O mesmo conteúdo como documento comum, para editar direto. |
+| `Modelo-TCC-Monografia-ABNT.pdf` | Prévia de como fica impresso. |
+
+## Como usar
+
+1. **Escreva usando os estilos** (Página Inicial > Estilos), sem formatar à mão:
+   - `Título 1` a `Título 5`: seções numeradas (1, 1.1, 1.1.1...). A numeração se ajusta sozinha.
+   - `Título pré-textual`: RESUMO, SUMÁRIO etc. (centralizado, fora do sumário).
+   - `Título pós-textual`: REFERÊNCIAS, APÊNDICE, ANEXO (centralizado, entra no sumário).
+   - `Citação longa`: citação com mais de 3 linhas (recuo de 4 cm, fonte 10, espaçamento simples).
+   - `Referência`: cada item da lista de referências.
+   - `Legenda` (Referências > Inserir Legenda) e `Fonte da ilustração`: título e fonte de figuras e tabelas.
+2. **Apague as caixas amarelas** (estilo `Instrução (apagar)`): são só orientações.
+3. **Atualize o sumário e as listas** antes de entregar: clique com o botão direito sobre eles > *Atualizar campo* > *Atualizar o índice inteiro* (ou `Ctrl+A` e depois `F9`).
+
+## Gerador de referências (`referencias/index.html`)
+
+Abra o arquivo `referencias/index.html` no navegador (dois cliques). Não precisa de internet nem de instalar nada.
+
+1. Escolha o tipo: livro, capítulo, artigo, TCC/dissertação/tese, trabalho em evento, site ou legislação.
+2. Preencha os campos. A referência (NBR 6023:2018) aparece na hora, junto com a forma de citá-la no texto (NBR 10520:2023), por exemplo `(Gil, 2017)` e `Gil (2017)`.
+3. Clique em **Adicionar à lista**. A lista fica em ordem alfabética e salva neste navegador.
+4. Clique em **Copiar lista completa** e cole sob o título REFERÊNCIAS. O negrito e o itálico vão junto, tanto no Word quanto no LibreOffice.
+
+O gerador já trata sozinho:
+- a inversão dos nomes (Maria da Silva → SILVA, Maria da) e sobrenomes como Júnior, Filho e Neto;
+- autores que são instituições;
+- 4 ou mais autores (todos ou só o primeiro + et al.);
+- obras sem autor (a primeira palavra do título vai em maiúsculas);
+- [S. l.] e [s. n.] quando faltam local ou editora;
+- abreviação dos meses e data de acesso.
+
+As regras ficam em `referencias/abnt-ref.js`, separadas da página, para poderem ser reaproveitadas num suplemento do Word ou numa extensão do LibreOffice. Para rodar os testes: `npm test`.
+
+## Verificador de formatação (`verificador/index.html`)
+
+Abra `verificador/index.html` no navegador e arraste o seu TCC em `.docx`. No LibreOffice, salve antes como “Word 2007-365 (.docx)”. O arquivo é lido no seu computador e nada é enviado para a internet.
+
+O relatório separa **erros**, **pontos de atenção** e **o que está dentro da norma**, e mostra o trecho do texto onde está cada problema. Ele confere:
+
+| Item | Norma |
+|---|---|
+| Presença de resumo, abstract, sumário, introdução e referências | NBR 14724 |
+| Papel A4 e margens (3/3/2/2 cm) | NBR 14724, 5.1 |
+| Número da página no cabeçalho, à direita | NBR 14724, 5.3 |
+| Texto em tamanho 12, espaçamento 1,5 e uma só fonte | NBR 14724, 5.1 e 5.2 |
+| Citações longas: recuo de 4 cm, fonte menor, espaçamento simples, sem aspas | NBR 10520:2023 |
+| Sobrenome nas citações só com a inicial maiúscula, ex.: (Silva, 2020) | NBR 10520:2023 |
+| Seções primárias em nova página, numeradas, com hierarquia correta | NBR 14724 e 6024 |
+| Títulos sem número (resumo, sumário, referências…) centralizados | NBR 14724, 5.2.2 |
+| Títulos numerados alinhados à esquerda | NBR 6024:2012 |
+| Títulos em tamanho 12, como o texto | NBR 14724, 5.1 |
+| Parágrafos numa fonte diferente da principal | NBR 14724, 5.1 (recomendação) |
+| Apêndices e anexos no formato “APÊNDICE A – Título” | NBR 14724, 4.3 |
+| Ilustrações e tabelas com título acima e “Fonte:” abaixo | NBR 14724, 5.8 e 5.9 |
+| Notas de rodapé em fonte menor e espaçamento simples | NBR 14724, 5.2 |
+| Resumo em parágrafo único, de 150 a 500 palavras, com palavras-chave | NBR 6028:2021 |
+| Referências alinhadas à esquerda, espaçamento simples, em ordem alfabética | NBR 6023:2018 |
+| Orientações e textos “[entre colchetes]” do modelo ainda não apagados | — |
+
+O verificador não enxerga a paginação final (isso depende do Word ou do LibreOffice). Por isso, conferências como “o número só aparece a partir da Introdução” continuam sendo manuais. As regras ficam em `verificador/verificador.js`.
+
+## Suplemento do Word (`word-addin/`)
+
+Um painel dentro do Word (Página Inicial > **Painel ABNT**) com duas abas:
+
+- **Verificar**: confere o documento aberto, inclusive o que ainda não foi salvo, com as mesmas regras do verificador. Clicar num trecho leva até ele no texto.
+- **Corrigir**: depois de verificar, o botão **Corrigir a formatação automaticamente** ajusta espaçamento, tamanho da fonte, alinhamento, recuo das citações longas, títulos sem número centralizados, quebra de página antes dos títulos e a formatação das referências. Trocas de texto (sobrenome em maiúsculas nas citações, travessão nos apêndices, palavras-chave) têm um botão em cada item, para você conferir uma a uma. Depois de corrigir, o painel verifica de novo. Tudo pode ser desfeito com `Ctrl+Z`.
+  - Continua manual: margens, número de página, ordem alfabética das referências, notas de rodapé e o conteúdo do resumo.
+- **Referências**: o mesmo gerador de referências. Os botões inserem a referência num parágrafo novo, abaixo do cursor (alinhada à esquerda, espaçamento simples), e a citação, como (Gil, 2017) ou Gil (2017), no ponto do cursor.
+
+Requer Word 2019 ou mais recente, ou Microsoft 365.
+
+### Instalar (versão publicada, sem servidor)
+
+O painel fica publicado em `https://ocaioaug.github.io/abnt-tcc/word-addin/painel.html`. Para instalar no Word do Windows (requer Node.js):
+
+```bash
+npx --yes office-addin-dev-settings register word-addin/manifest-publicado.xml
+```
+
+Feche e abra o Word: o botão **Painel ABNT** aparece na guia Página Inicial. Não precisa de terminal aberto nem de certificado. Para remover: `npx --yes office-addin-dev-settings unregister word-addin/manifest-publicado.xml`.
+
+No Word para a web: Página Inicial > Suplementos > Mais suplementos > Meus suplementos > Carregar meu suplemento, e escolha o arquivo `word-addin/manifest-publicado.xml`.
+
+### Rodar localmente (para quem for alterar o painel)
+
+Requer Node.js:
+
+```bash
+npm run addin:certificado
+npm run addin:registrar
+npm run addin
+```
+
+1. `addin:certificado` (só na primeira vez) cria um certificado para `https://localhost`. O Windows pergunta se você confia nele: responda **Sim**. O Office só abre suplementos por https.
+2. `addin:registrar` (só na primeira vez) cadastra o suplemento no Word deste computador.
+3. `addin` liga o servidor local. Deixe a janela aberta enquanto usa o painel.
+4. Abra o Word: o botão **Painel ABNT** aparece na guia Página Inicial. Se não aparecer, procure em Página Inicial > Suplementos.
+
+Para tirar o suplemento do Word: `npm run addin:remover`.
+
+Para publicar em outro endereço https, gere o manifest com `node word-addin/gerar-manifest.js https://seu-endereco/`. Para testar mudanças no painel sem o Word, abra `word-addin/simulador.html?docx=caminho/do/arquivo.docx` por um servidor local: ele imita o Word e registra no console (`__log`) cada alteração pedida.
+
+## O que já está configurado
+
+- Folha A4; margens de 3 cm (superior e esquerda) e 2 cm (inferior e direita).
+- Arial 12, espaçamento 1,5, texto justificado e recuo de 1,25 cm na primeira linha.
+- Paginação: a contagem começa na folha de rosto, mas o número só aparece a partir da Introdução, no canto superior direito. A capa não é contada.
+- Estrutura completa da NBR 14724: capa, folha de rosto, ficha catalográfica, folha de aprovação, dedicatória, agradecimentos, epígrafe, resumo, abstract, listas, sumário, capítulos, referências, apêndice e anexo.
+- Exemplos de citação (NBR 10520:2023) e de referência (NBR 6023:2018).
+
+Normas usadas: NBR 14724:2011, 6024:2012, 6027:2012, 6028:2021, 10520:2023 e 6023:2018.
+
+## Gerar o modelo de novo (para quem for alterar)
+
+Requer Node.js e Microsoft Word (o Word é usado para atualizar o sumário e exportar os arquivos).
+
+```bash
+npm install
+node build.js
+powershell -File scripts/finalizar-word.ps1
+node scripts/limpar-metadados.js
+```
+
+O último passo tira dos arquivos o nome de quem os salvou, que o Word grava automaticamente.
+
+- `src/abnt.js`: regras de formatação (margens, fonte, estilos), compartilhadas por todos os modelos.
+- `src/monografia.js`: conteúdo e estrutura da monografia.
+- Para criar o modelo de **artigo (NBR 6022)**, adicione um `src/artigo.js` reaproveitando `abnt.js` e registre-o no `build.js`.
+- Para trocar a fonte para Times New Roman, altere `FONTE` em `src/abnt.js`.

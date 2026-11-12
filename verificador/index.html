@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verificador ABNT</title>
+<style>
+  :root {
+    --fundo: #f6f5f2; --cartao: #ffffff; --texto: #1d1d1f; --suave: #6b6b70; --borda: #dcdad5;
+    --destaque: #1f5fbf; --destaque-texto: #ffffff;
+    --erro: #b42318; --erro-fundo: #fdecea; --aviso: #8a5a00; --aviso-fundo: #fff4d6;
+    --ok: #1e7a3c; --ok-fundo: #e6f4ea; --info: #4a5568; --info-fundo: #eef0f3; --trecho: #f3f2ef;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fundo: #18181a; --cartao: #222225; --texto: #ececee; --suave: #a0a0a8; --borda: #3a3a3f;
+      --destaque: #6ea2ff; --destaque-texto: #0d1420;
+      --erro: #ff8a80; --erro-fundo: #3a1d1b; --aviso: #f3d98a; --aviso-fundo: #3b3115;
+      --ok: #6fd28f; --ok-fundo: #173323; --info: #c3c8d2; --info-fundo: #2a2d33; --trecho: #1b1b1e;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .topo, main, footer { max-width: 900px; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
+  .topo { padding-top: 28px; padding-bottom: 8px; }
+  nav { font-size: 14px; margin-bottom: 14px; display: flex; gap: 14px; flex-wrap: wrap; }
+  nav a { color: var(--destaque); text-decoration: none; }
+  nav a[aria-current] { color: var(--texto); font-weight: 600; }
+  h1 { font-size: 24px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .topo p { margin: 0; color: var(--suave); }
+  main { padding-top: 16px; padding-bottom: 16px; display: grid; gap: 16px; }
+
+  .soltar { border: 2px dashed var(--borda); border-radius: 12px; background: var(--cartao); padding: 32px 18px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
+  .soltar.sobre { border-color: var(--destaque); }
+  .soltar strong { display: block; font-size: 17px; margin-bottom: 4px; }
+  .soltar span { color: var(--suave); font-size: 14px; }
+  .soltar input { display: none; }
+
+  .cartao { background: var(--cartao); border: 1px solid var(--borda); border-radius: 12px; padding: 18px; }
+  .placar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .placar h2 { font-size: 17px; margin: 0 auto 0 0; overflow-wrap: anywhere; }
+  .chip { border-radius: 999px; padding: 4px 12px; font-size: 14px; font-weight: 600; }
+  .chip.erro { background: var(--erro-fundo); color: var(--erro); }
+  .chip.aviso { background: var(--aviso-fundo); color: var(--aviso); }
+  .chip.ok { background: var(--ok-fundo); color: var(--ok); }
+  .veredito { margin: 12px 0 0; color: var(--suave); }
+
+  .regra { border: 1px solid var(--borda); border-radius: 10px; margin-top: 10px; overflow: hidden; background: var(--cartao); }
+  .regra summary { list-style: none; cursor: pointer; padding: 12px 14px; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; }
+  .regra summary::-webkit-details-marker { display: none; }
+  .selo { grid-row: span 2; align-self: start; border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+  .erro .selo { background: var(--erro-fundo); color: var(--erro); }
+  .aviso .selo { background: var(--aviso-fundo); color: var(--aviso); }
+  .ok .selo { background: var(--ok-fundo); color: var(--ok); }
+  .info .selo { background: var(--info-fundo); color: var(--info); }
+  .regra .tit { font-weight: 600; }
+  .regra .tit small { font-weight: 400; color: var(--suave); margin-left: 6px; }
+  .regra .msg { color: var(--suave); font-size: 14px; }
+  .ocorr { margin: 0; padding: 0 14px 12px; list-style: none; display: grid; gap: 6px; }
+  .ocorr li { background: var(--trecho); border-radius: 6px; padding: 7px 10px; font-size: 13.5px; }
+  .ocorr q { font-family: Arial, Helvetica, sans-serif; overflow-wrap: anywhere; }
+  .ocorr q::before, .ocorr q::after { content: "“"; color: var(--suave); }
+  .ocorr q::after { content: "”"; }
+  .ocorr .det { display: block; color: var(--suave); margin-top: 2px; }
+  .mais { margin: 0 14px 12px; font: inherit; font-size: 13px; color: var(--destaque); background: none; border: 0; padding: 0; cursor: pointer; }
+  h3.grupo { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); margin: 18px 0 0; }
+  .falha { background: var(--erro-fundo); color: var(--erro); border-radius: 10px; padding: 12px 14px; }
+  footer { color: var(--suave); font-size: 13px; padding-bottom: 28px; }
+</style>
+</head>
+<body>
+<div class="topo">
+  <nav><a href="../referencias/index.html">Gerador de referências</a><a href="index.html" aria-current="page">Verificador de formatação</a></nav>
+  <h1>Verificador de formatação ABNT</h1>
+  <p>Envie o seu TCC em .docx e veja o que está fora das normas. O arquivo é lido aqui mesmo, no seu computador: nada é enviado para a internet.</p>
+</div>
+
+<main>
+  <label class="soltar" id="soltar">
+    <input type="file" id="arquivo" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+    <strong>Arraste o arquivo .docx aqui</strong>
+    <span>ou clique para escolher. No LibreOffice, salve antes como “Word 2007-365 (.docx)”.</span>
+  </label>
+  <div id="resultado" aria-live="polite"></div>
+</main>
+
+<footer>
+  Confere: margens, papel, paginação, fonte, espaçamento, títulos e numeração das seções, citações longas, formato das citações (NBR 10520:2023),
+  legendas e fontes de ilustrações, notas de rodapé, resumo e referências. É uma ajuda automática: a revisão final continua sendo sua e do seu orientador.
+</footer>
+
+<script src="vendor/jszip.min.js"></script>
+<script src="verificador.js"></script>
+<script>
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const ROTULO = { erro: "Erro", aviso: "Atenção", ok: "OK", info: "Info" };
+  const MOSTRAR = 6;
+
+  async function processar(arquivo) {
+    if (!arquivo) return;
+    const res = $("resultado");
+    if (!/\.docx$/i.test(arquivo.name)) {
+      res.innerHTML = `<div class="falha">“${esc(arquivo.name)}” não é um arquivo .docx. No Word use Arquivo > Salvar como > Documento do Word (.docx).</div>`;
+      return;
+    }
+    res.innerHTML = `<div class="cartao">Analisando “${esc(arquivo.name)}”…</div>`;
+    try {
+      const rel = await VerificadorABNT.verificar(await arquivo.arrayBuffer(), { JSZip: window.JSZip, DOMParser: window.DOMParser });
+      res.innerHTML = desenhar(arquivo.name, rel);
+      res.querySelectorAll("button.mais").forEach((b) => b.onclick = () => {
+        b.previousElementSibling.querySelectorAll("li[hidden]").forEach((li) => li.hidden = false);
+        b.remove();
+      });
+    } catch (e) {
+      res.innerHTML = `<div class="falha">Não foi possível ler “${esc(arquivo.name)}”. Verifique se é um .docx válido e se não está protegido por senha.<br><small>${esc(e.message || e)}</small></div>`;
+    }
+  }
+
+  function desenharRegra(it, aberta) {
+    const lis = it.ocorrencias.map((o, i) =>
+      `<li${i >= MOSTRAR ? " hidden" : ""}>${o.trecho ? `<q>${esc(o.trecho)}${o.trecho.length >= 110 ? "…" : ""}</q>` : ""}${o.detalhe ? `<span class="det">${esc(o.detalhe)}</span>` : ""}</li>`).join("");
+    return `<details class="regra ${it.nivel}"${aberta ? " open" : ""}>
+      <summary><span class="selo">${ROTULO[it.nivel]}</span>
+        <span class="tit">${esc(it.titulo)}<small>${esc(it.norma)}</small></span>
+        <span class="msg">${esc(it.mensagem)}</span></summary>
+      ${lis ? `<ul class="ocorr">${lis}</ul>` : ""}
+      ${it.ocorrencias.length > MOSTRAR ? `<button class="mais" type="button">Mostrar mais ${it.ocorrencias.length - MOSTRAR}</button>` : ""}
+    </details>`;
+  }
+
+  function desenhar(nome, rel) {
+    const g = (n) => rel.itens.filter((x) => x.nivel === n);
+    const erros = g("erro"), avisos = g("aviso"), certos = [...g("ok"), ...g("info")];
+    const veredito = erros.length
+      ? `Corrija os ${erros.length} ponto(s) marcados como erro antes de entregar.`
+      : avisos.length ? "Nenhum erro de formatação encontrado. Revise os pontos de atenção." : "Tudo certo nos itens verificados.";
+    const aviso = !rel.partes.introducao
+      ? `<p class="veredito">Não encontrei o título “Introdução”; por isso algumas regras do texto foram aplicadas ao documento inteiro.</p>` : "";
+    return `<section class="cartao">
+        <div class="placar"><h2>${esc(nome)}</h2>
+          <span class="chip erro">${erros.length} erro(s)</span>
+          <span class="chip aviso">${avisos.length} atenção</span>
+          <span class="chip ok">${certos.length} ok</span></div>
+        <p class="veredito">${veredito}</p>${aviso}
+      </section>
+      ${erros.length ? `<h3 class="grupo">Erros</h3>${erros.map((x) => desenharRegra(x, true)).join("")}` : ""}
+      ${avisos.length ? `<h3 class="grupo">Pontos de atenção</h3>${avisos.map((x) => desenharRegra(x, true)).join("")}` : ""}
+      ${certos.length ? `<h3 class="grupo">Dentro da norma</h3>${certos.map((x) => desenharRegra(x, false)).join("")}` : ""}`;
+  }
+
+  const zona = $("soltar");
+  $("arquivo").onchange = (e) => processar(e.target.files[0]);
+  ["dragenter", "dragover"].forEach((ev) => zona.addEventListener(ev, (e) => { e.preventDefault(); zona.classList.add("sobre"); }));
+  ["dragleave", "drop"].forEach((ev) => zona.addEventListener(ev, (e) => { e.preventDefault(); zona.classList.remove("sobre"); }));
+  zona.addEventListener("drop", (e) => processar(e.dataTransfer.files[0]));
+  // Soltar fora da área não deve abrir o arquivo no navegador
+  window.addEventListener("dragover", (e) => e.preventDefault());
+  window.addEventListener("drop", (e) => e.preventDefault());
+})();
+</script>
+</body>
+</html>

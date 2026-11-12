@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Manifest do suplemento ABNT para o Word.
+     Os endereços apontam para o servidor local (npm run addin).
+     Para hospedar em outro endereço https: node word-addin/gerar-manifest.js https://seu-endereco/ -->
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+           xsi:type="TaskPaneApp">
+  <Id>b3f166a2-15f0-4db1-b990-42300f455a9c</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>ABNT TCC</ProviderName>
+  <DefaultLocale>pt-BR</DefaultLocale>
+  <DisplayName DefaultValue="ABNT para TCC"/>
+  <Description DefaultValue="Verifica a formatação do TCC pelas normas da ABNT e insere referências e citações."/>
+  <IconUrl DefaultValue="https://localhost:3000/word-addin/icones/icone-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://localhost:3000/word-addin/icones/icone-64.png"/>
+  <SupportUrl DefaultValue="https://localhost:3000/README.md"/>
+  <AppDomains>
+    <AppDomain>https://localhost:3000</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Document"/>
+  </Hosts>
+  <Requirements>
+    <Sets DefaultMinVersion="1.3">
+      <Set Name="WordApi" MinVersion="1.3"/>
+    </Sets>
+  </Requirements>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://localhost:3000/word-addin/painel.html"/>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Document">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="Titulo"/>
+            <Description resid="Descricao"/>
+            <LearnMoreUrl resid="Ajuda"/>
+          </GetStarted>
+          <FunctionFile resid="Painel"/>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="ABNT.Grupo">
+                <Label resid="Grupo"/>
+                <Icon>
+                  <bt:Image size="16" resid="Icone16"/>
+                  <bt:Image size="32" resid="Icone32"/>
+                  <bt:Image size="80" resid="Icone80"/>
+                </Icon>
+                <Control xsi:type="Button" id="ABNT.Abrir">
+                  <Label resid="Botao"/>
+                  <Supertip>
+                    <Title resid="Botao"/>
+                    <Description resid="Descricao"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icone16"/>
+                    <bt:Image size="32" resid="Icone32"/>
+                    <bt:Image size="80" resid="Icone80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ABNT.Painel</TaskpaneId>
+                    <SourceLocation resid="Painel"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icone16" DefaultValue="https://localhost:3000/word-addin/icones/icone-16.png"/>
+        <bt:Image id="Icone32" DefaultValue="https://localhost:3000/word-addin/icones/icone-32.png"/>
+        <bt:Image id="Icone80" DefaultValue="https://localhost:3000/word-addin/icones/icone-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="Painel" DefaultValue="https://localhost:3000/word-addin/painel.html"/>
+        <bt:Url id="Ajuda" DefaultValue="https://localhost:3000/README.md"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="Titulo" DefaultValue="ABNT para TCC"/>
+        <bt:String id="Grupo" DefaultValue="ABNT"/>
+        <bt:String id="Botao" DefaultValue="Painel ABNT"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="Descricao" DefaultValue="Abre o painel que verifica a formatação ABNT e insere referências e citações."/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

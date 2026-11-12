@@ -1,0 +1,26 @@
+{
+  "name": "abnt-tcc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test referencias/abnt-ref.test.js verificador/verificador.test.js",
+    "build": "node build.js",
+    "addin": "node word-addin/servidor.js",
+    "addin:certificado": "npx --yes office-addin-dev-certs install",
+    "addin:registrar": "npx --yes office-addin-dev-settings register word-addin/manifest.xml",
+    "addin:remover": "npx --yes office-addin-dev-settings unregister word-addin/manifest.xml",
+    "addin:validar": "npx --yes office-addin-manifest validate word-addin/manifest.xml"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "docx": "^9.15.3",
+    "jszip": "^3.10.1"
+  },
+  "devDependencies": {
+    "@xmldom/xmldom": "^0.9.12"
+  }
+}

@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gerador de Referências ABNT</title>
+<style>
+  :root {
+    --fundo: #f6f5f2; --cartao: #ffffff; --texto: #1d1d1f; --suave: #6b6b70;
+    --borda: #dcdad5; --campo: #ffffff; --destaque: #1f5fbf; --destaque-texto: #ffffff;
+    --aviso-fundo: #fff4d6; --aviso-texto: #6b4e00; --ok: #1e7a3c; --previa: #fbfbfa;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fundo: #18181a; --cartao: #222225; --texto: #ececee; --suave: #a0a0a8;
+      --borda: #3a3a3f; --campo: #1b1b1e; --destaque: #6ea2ff; --destaque-texto: #0d1420;
+      --aviso-fundo: #3b3115; --aviso-texto: #f3d98a; --ok: #6fd28f; --previa: #1d1d20;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--texto);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { max-width: 1180px; margin: 0 auto; padding: 28px 16px 8px; }
+  h1 { font-size: 24px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--suave); }
+  main { max-width: 1180px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 920px) { main { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+  .cartao { background: var(--cartao); border: 1px solid var(--borda); border-radius: 12px; padding: 18px; }
+  .cartao h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--suave); margin: 0 0 12px; }
+  .lateral { display: grid; gap: 16px; position: sticky; top: 16px; }
+  @media (max-width: 919px) { .lateral { position: static; } }
+
+  .tipos { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .tipos button { border: 1px solid var(--borda); background: var(--campo); color: var(--texto);
+    border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer; }
+  .tipos button[aria-pressed="true"] { background: var(--destaque); border-color: var(--destaque); color: var(--destaque-texto); }
+
+  .campo { margin-bottom: 12px; }
+  .campo label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .campo label .obrig { color: var(--destaque); margin-left: 2px; }
+  .campo small { display: block; color: var(--suave); font-size: 12.5px; margin-top: 3px; }
+  input[type=text], input[type=date], textarea, select {
+    width: 100%; font: inherit; color: var(--texto); background: var(--campo);
+    border: 1px solid var(--borda); border-radius: 8px; padding: 8px 10px; }
+  textarea { min-height: 64px; resize: vertical; }
+  input:focus, textarea:focus, select:focus, button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; }
+  .checkbox { display: flex; gap: 8px; align-items: center; font-weight: 400 !important; }
+  .grade2 { display: grid; gap: 0 12px; grid-template-columns: 1fr; }
+  @media (min-width: 520px) { .grade2 { grid-template-columns: 1fr 1fr; } }
+
+  .previa { background: var(--previa); border: 1px dashed var(--borda); border-radius: 8px; padding: 14px;
+    font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.4; min-height: 52px; overflow-wrap: anywhere; }
+  .previa.vazia { color: var(--suave); font-style: italic; }
+  .aviso { background: var(--aviso-fundo); color: var(--aviso-texto); border-radius: 8px; padding: 8px 10px; font-size: 13.5px; margin-top: 10px; }
+  .citacoes { display: grid; gap: 6px; margin-top: 12px; font-size: 14px; }
+  .citacoes div { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .citacoes span.rot { color: var(--suave); min-width: 110px; }
+  .citacoes code { font-family: Arial, Helvetica, sans-serif; font-size: 14px; }
+
+  .acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  button.bt { font: inherit; font-size: 14px; border-radius: 8px; padding: 8px 14px; cursor: pointer;
+    border: 1px solid var(--borda); background: var(--campo); color: var(--texto); }
+  button.bt.prim { background: var(--destaque); border-color: var(--destaque); color: var(--destaque-texto); font-weight: 600; }
+  button.bt.peq { padding: 4px 9px; font-size: 13px; }
+  button.bt:disabled { opacity: .5; cursor: default; }
+
+  ol.lista { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  ol.lista li { border: 1px solid var(--borda); border-radius: 8px; padding: 10px 12px; }
+  ol.lista li.editando { border-color: var(--destaque); }
+  ol.lista .ref { font-family: Arial, Helvetica, sans-serif; font-size: 14px; overflow-wrap: anywhere; }
+  ol.lista .botoes { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .vazio { color: var(--suave); font-size: 14px; margin: 0; }
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--texto); color: var(--fundo);
+    padding: 8px 14px; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.on { opacity: 1; }
+  footer { max-width: 1180px; margin: 0 auto; padding: 0 16px 28px; color: var(--suave); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <nav style="font-size:14px;margin-bottom:14px;display:flex;gap:14px;flex-wrap:wrap"><a href="index.html" style="color:var(--texto);font-weight:600;text-decoration:none" aria-current="page">Gerador de referências</a><a href="../verificador/index.html" style="color:var(--destaque);text-decoration:none">Verificador de formatação</a></nav>
+  <h1>Gerador de Referências ABNT</h1>
+  <p>Referências conforme a NBR 6023:2018 e citações conforme a NBR 10520:2023. Copie e cole no Word ou no LibreOffice: o negrito vai junto.</p>
+</header>
+
+<main>
+  <section class="cartao" aria-labelledby="t-form">
+    <h2 id="t-form">Dados da obra</h2>
+    <div class="tipos" id="tipos" role="group" aria-label="Tipo de documento"></div>
+    <form id="form" autocomplete="off" onsubmit="return false"></form>
+  </section>
+
+  <div class="lateral">
+    <section class="cartao" aria-labelledby="t-prev">
+      <h2 id="t-prev">Referência</h2>
+      <div id="previa" class="previa vazia" aria-live="polite">Preencha os campos ao lado.</div>
+      <div id="aviso" class="aviso" hidden></div>
+      <div class="citacoes" id="citacoes" hidden>
+        <div><span class="rot">Citação:</span><code id="cit-par"></code></div>
+        <div><span class="rot">No texto:</span><code id="cit-nar"></code></div>
+      </div>
+      <div class="acoes">
+        <button class="bt prim" id="bt-add" type="button">Adicionar à lista</button>
+        <button class="bt" id="bt-copiar" type="button">Copiar referência</button>
+        <button class="bt" id="bt-novo" type="button">Limpar campos</button>
+      </div>
+    </section>
+
+    <section class="cartao" aria-labelledby="t-lista">
+      <h2 id="t-lista">Minhas referências (<span id="qtd">0</span>)</h2>
+      <p class="vazio" id="lista-vazia">As referências adicionadas aparecem aqui, já em ordem alfabética, e ficam salvas neste navegador.</p>
+      <ol class="lista" id="lista"></ol>
+      <div class="acoes">
+        <button class="bt prim" id="bt-copiar-tudo" type="button">Copiar lista completa</button>
+        <button class="bt" id="bt-limpar" type="button">Apagar lista</button>
+      </div>
+    </section>
+  </div>
+</main>
+<footer>
+  Dica: no documento, cole as referências sob o título REFERÊNCIAS e aplique o estilo “Referência” do modelo.
+  Confira sempre os dados com a obra original.
+</footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="abnt-ref.js"></script>
+<script>
+(function () {
+  "use strict";
+  const { formatar, ordenar, TIPOS, CAMPOS, hojeISO } = window.ABNTRef;
+  const $ = (id) => document.getElementById(id);
+  const CHAVE = "abnt-referencias-v1";
+
+  // Campos curtos que ficam lado a lado
+  const CURTOS = new Set(["edicao", "local", "editora", "ano", "paginasTotal", "paginas", "volume", "numero", "mes",
+    "localPeriodico", "folhas", "anoDefesa", "numeroEvento", "anoEvento", "localEvento", "acesso", "tipoAutor", "responsabilidade",
+    "tipoAutorLivro", "responsabilidadeLivro"]);
+
+  const estado = { tipo: "livro", dados: { acesso: hojeISO() }, lista: carregar(), editando: null };
+
+  // ---------------------------------------------------------- armazenamento
+  function carregar() {
+    try { return JSON.parse(localStorage.getItem(CHAVE)) || []; } catch (e) { return []; }
+  }
+  function salvar() {
+    try { localStorage.setItem(CHAVE, JSON.stringify(estado.lista)); } catch (e) { /* sem armazenamento */ }
+  }
+
+  // ---------------------------------------------------------- formulário
+  function desenharTipos() {
+    $("tipos").innerHTML = "";
+    for (const [id, t] of Object.entries(TIPOS)) {
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = t.nome;
+      b.setAttribute("aria-pressed", String(id === estado.tipo));
+      b.onclick = () => { estado.tipo = id; desenharTipos(); desenharForm(); atualizar(); };
+      $("tipos").appendChild(b);
+    }
+  }
+
+  function criarCampo(id) {
+    const c = CAMPOS[id];
+    const obrig = TIPOS[estado.tipo].obrigatorios.includes(id);
+    const div = document.createElement("div");
+    div.className = "campo";
+    const valor = estado.dados[id];
+    let html;
+    const ex = c.exemplo ? ` placeholder="Ex.: ${c.exemplo}"` : "";
+    if (c.tipo === "checkbox") {
+      html = `<label class="checkbox"><input type="checkbox" id="f-${id}"${valor ? " checked" : ""}> ${c.rotulo}</label>`;
+    } else {
+      const rot = `<label for="f-${id}">${c.rotulo}${obrig ? '<span class="obrig" title="obrigatório">*</span>' : ""}</label>`;
+      if (c.tipo === "textarea") html = rot + `<textarea id="f-${id}"${ex}></textarea>`;
+      else if (c.tipo === "select") html = rot + `<select id="f-${id}">${c.opcoes.map(([v, t]) => `<option value="${v}">${t}</option>`).join("")}</select>`;
+      else html = rot + `<input type="${c.tipo}" id="f-${id}"${ex}>`;
+      if (c.dica) html += `<small>${c.dica}</small>`;
+    }
+    div.innerHTML = html;
+    const el = div.querySelector("input, textarea, select");
+    if (c.tipo === "checkbox") el.onchange = () => { estado.dados[id] = el.checked; atualizar(); };
+    else {
+      if (valor !== undefined) el.value = valor;
+      else if (c.tipo === "select") estado.dados[id] = el.value;
+      el.oninput = () => { estado.dados[id] = el.value; atualizar(); };
+    }
+    return div;
+  }
+
+  function desenharForm() {
+    const form = $("form");
+    form.innerHTML = "";
+    let grade = null;
+    for (const id of TIPOS[estado.tipo].campos) {
+      const campo = criarCampo(id);
+      if (CURTOS.has(id)) {
+        if (!grade) { grade = document.createElement("div"); grade.className = "grade2"; form.appendChild(grade); }
+        grade.appendChild(campo);
+      } else { grade = null; form.appendChild(campo); }
+    }
+  }
+
+  // ---------------------------------------------------------- prévia
+  function temConteudo() {
+    return TIPOS[estado.tipo].campos.some((c) => CAMPOS[c].tipo !== "select" && c !== "acesso" && c !== "etAl" && String(estado.dados[c] || "").trim());
+  }
+
+  function atualizar() {
+    const ok = temConteudo();
+    const prev = $("previa");
+    $("bt-add").disabled = $("bt-copiar").disabled = !ok;
+    if (!ok) {
+      prev.className = "previa vazia"; prev.textContent = "Preencha os campos ao lado.";
+      $("aviso").hidden = true; $("citacoes").hidden = true;
+      return;
+    }
+    const r = formatar(estado.tipo, estado.dados);
+    prev.className = "previa"; prev.innerHTML = r.html;
+    $("cit-par").innerHTML = r.citacao.parenteses.html;
+    $("cit-nar").innerHTML = r.citacao.narrativa.html;
+    $("citacoes").hidden = false;
+    $("aviso").hidden = !r.faltando.length;
+    $("aviso").textContent = r.faltando.length ? "Faltam dados obrigatórios: " + r.faltando.join(", ") + "." : "";
+  }
+
+  // ---------------------------------------------------------- lista
+  function desenharLista() {
+    const ol = $("lista");
+    ol.innerHTML = "";
+    $("qtd").textContent = estado.lista.length;
+    $("lista-vazia").hidden = estado.lista.length > 0;
+    $("bt-copiar-tudo").disabled = $("bt-limpar").disabled = !estado.lista.length;
+    for (const item of ordenar(estado.lista.map(comFormato))) {
+      const li = document.createElement("li");
+      if (item.id === estado.editando) li.className = "editando";
+      li.innerHTML = `<div class="ref">${item.r.html}</div><div class="botoes">
+        <button class="bt peq" type="button" data-a="copiar">Copiar</button>
+        <button class="bt peq" type="button" data-a="editar">Editar</button>
+        <button class="bt peq" type="button" data-a="remover">Remover</button></div>`;
+      li.querySelector('[data-a="copiar"]').onclick = () => copiar([item.r]);
+      li.querySelector('[data-a="editar"]').onclick = () => editar(item);
+      li.querySelector('[data-a="remover"]').onclick = () => remover(item.id);
+      ol.appendChild(li);
+    }
+  }
+  const comFormato = (it) => { const r = formatar(it.tipo, it.dados); return { ...it, r, texto: r.texto }; };
+
+  function adicionar() {
+    const item = { id: estado.editando || String(Date.now()), tipo: estado.tipo, dados: { ...estado.dados } };
+    const i = estado.lista.findIndex((x) => x.id === item.id);
+    if (i >= 0) estado.lista[i] = item; else estado.lista.push(item);
+    const msg = estado.editando ? "Referência atualizada" : "Adicionada à lista";
+    estado.editando = null; $("bt-add").textContent = "Adicionar à lista";
+    salvar(); desenharLista(); limparCampos(); aviso(msg);
+  }
+
+  function editar(item) {
+    estado.editando = item.id; estado.tipo = item.tipo; estado.dados = { ...item.dados };
+    $("bt-add").textContent = "Salvar alteração";
+    desenharTipos(); desenharForm(); atualizar(); desenharLista();
+    $("form").querySelector("input, textarea")?.focus();
+  }
+
+  function remover(id) {
+    estado.lista = estado.lista.filter((x) => x.id !== id);
+    if (estado.editando === id) { estado.editando = null; $("bt-add").textContent = "Adicionar à lista"; }
+    salvar(); desenharLista();
+  }
+
+  function limparCampos() {
+    estado.dados = { acesso: hojeISO() };
+    desenharForm(); atualizar();
+  }
+
+  // ---------------------------------------------------------- área de transferência
+  // HTML com a mesma formatação do estilo "Referência" do modelo:
+  // Arial 12, espaçamento simples, alinhado à esquerda, uma linha em branco entre itens.
+  function htmlParaColar(refs) {
+    const p = (h) => `<p style="font-family:Arial,sans-serif;font-size:12pt;line-height:normal;text-align:left;margin:0 0 12pt 0">${h}</p>`;
+    return `<html><body><!--StartFragment-->${refs.map((r) => p(r.html)).join("")}<!--EndFragment--></body></html>`;
+  }
+
+  async function copiar(refs) {
+    const html = htmlParaColar(refs);
+    const texto = refs.map((r) => r.texto).join("\n\n");
+    let ok = false;
+    try {
+      await navigator.clipboard.write([new ClipboardItem({
+        "text/html": new Blob([html], { type: "text/html" }),
+        "text/plain": new Blob([texto], { type: "text/plain" }),
+      })]);
+      ok = true;
+    } catch (e) {
+      // Alternativa para navegadores sem ClipboardItem
+      const div = document.createElement("div");
+      div.style.cssText = "position:fixed;left:-9999px;top:0";
+      div.innerHTML = refs.map((r) => `<p style="font-family:Arial;font-size:12pt;margin:0 0 12pt 0">${r.html}</p>`).join("");
+      document.body.appendChild(div);
+      const sel = getSelection(); const range = document.createRange();
+      range.selectNodeContents(div); sel.removeAllRanges(); sel.addRange(range);
+      try { ok = document.execCommand("copy"); } catch (e2) { ok = false; }
+      sel.removeAllRanges(); div.remove();
+    }
+    if (ok) aviso(refs.length > 1 ? `${refs.length} referências copiadas` : "Referência copiada");
+    else aviso("Não foi possível copiar. Selecione o texto da prévia e use Ctrl+C.");
+  }
+
+  let t;
+  function aviso(msg) {
+    const el = $("toast"); el.textContent = msg; el.classList.add("on");
+    clearTimeout(t); t = setTimeout(() => el.classList.remove("on"), 1800);
+  }
+
+  // ---------------------------------------------------------- eventos
+  $("bt-add").onclick = adicionar;
+  $("bt-copiar").onclick = () => copiar([formatar(estado.tipo, estado.dados)]);
+  $("bt-novo").onclick = () => {
+    estado.editando = null; $("bt-add").textContent = "Adicionar à lista";
+    limparCampos(); desenharLista();
+  };
+  $("bt-copiar-tudo").onclick = () => copiar(ordenar(estado.lista.map(comFormato)).map((x) => x.r));
+  $("bt-limpar").onclick = () => {
+    if (confirm("Apagar todas as referências da lista? Isso não pode ser desfeito.")) {
+      estado.lista = []; salvar(); desenharLista();
+    }
+  };
+
+  desenharTipos(); desenharForm(); atualizar(); desenharLista();
+})();
+</script>
+</body>
+</html>

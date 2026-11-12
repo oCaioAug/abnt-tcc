@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABNT</title>
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<style>
+  :root {
+    --fundo: #f6f5f2; --cartao: #ffffff; --texto: #1d1d1f; --suave: #6b6b70; --borda: #dcdad5;
+    --destaque: #1f5fbf; --destaque-texto: #ffffff;
+    --erro: #b42318; --erro-fundo: #fdecea; --aviso: #8a5a00; --aviso-fundo: #fff4d6;
+    --ok: #1e7a3c; --ok-fundo: #e6f4ea; --info: #4a5568; --info-fundo: #eef0f3; --trecho: #f3f2ef;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fundo: #18181a; --cartao: #222225; --texto: #ececee; --suave: #a0a0a8; --borda: #3a3a3f;
+      --destaque: #6ea2ff; --destaque-texto: #0d1420;
+      --erro: #ff8a80; --erro-fundo: #3a1d1b; --aviso: #f3d98a; --aviso-fundo: #3b3115;
+      --ok: #6fd28f; --ok-fundo: #173323; --info: #c3c8d2; --info-fundo: #2a2d33; --trecho: #1b1b1e;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font: 14px/1.45 "Segoe UI", system-ui, sans-serif; }
+  .abas { display: flex; border-bottom: 1px solid var(--borda); background: var(--cartao); position: sticky; top: 0; z-index: 2; }
+  .abas button { flex: 1; font: inherit; font-weight: 600; padding: 10px 6px; border: 0; background: none; color: var(--suave); border-bottom: 2px solid transparent; cursor: pointer; }
+  .abas button[aria-selected="true"] { color: var(--destaque); border-bottom-color: var(--destaque); }
+  section { padding: 12px; display: grid; gap: 10px; }
+  section[hidden] { display: none; }
+  .bt { font: inherit; font-weight: 600; border-radius: 8px; padding: 8px 12px; cursor: pointer; border: 1px solid var(--borda); background: var(--cartao); color: var(--texto); }
+  .bt.prim { background: var(--destaque); color: var(--destaque-texto); border-color: var(--destaque); }
+  .bt:disabled { opacity: .5; cursor: default; }
+  .bt.larg { width: 100%; }
+  .nota { color: var(--suave); font-size: 12.5px; margin: 0; }
+  .falha { background: var(--erro-fundo); color: var(--erro); border-radius: 8px; padding: 10px; }
+
+  .placar { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { border-radius: 999px; padding: 2px 10px; font-size: 12.5px; font-weight: 600; }
+  .chip.erro { background: var(--erro-fundo); color: var(--erro); }
+  .chip.aviso { background: var(--aviso-fundo); color: var(--aviso); }
+  .chip.ok { background: var(--ok-fundo); color: var(--ok); }
+  h3.grupo { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); margin: 6px 0 -4px; }
+  .regra { border: 1px solid var(--borda); border-radius: 8px; background: var(--cartao); overflow: hidden; }
+  .regra summary { list-style: none; cursor: pointer; padding: 9px 10px; }
+  .regra summary::-webkit-details-marker { display: none; }
+  .selo { display: inline-block; border-radius: 5px; padding: 0 6px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; margin-right: 6px; vertical-align: 1px; }
+  .erro .selo { background: var(--erro-fundo); color: var(--erro); }
+  .aviso .selo { background: var(--aviso-fundo); color: var(--aviso); }
+  .ok .selo { background: var(--ok-fundo); color: var(--ok); }
+  .info .selo { background: var(--info-fundo); color: var(--info); }
+  .regra .tit { font-weight: 600; }
+  .regra .msg { display: block; color: var(--suave); font-size: 12.5px; margin-top: 2px; }
+  .ocorr { margin: 0; padding: 0 10px 10px; list-style: none; display: grid; gap: 5px; }
+  .ocorr li { background: var(--trecho); border-radius: 6px; padding: 6px 8px; font-size: 12.5px; overflow-wrap: anywhere; }
+  .ocorr li.ir { cursor: pointer; }
+  .ocorr li.ir:hover { outline: 1px solid var(--destaque); }
+  .ocorr .det { display: block; color: var(--suave); }
+  .ocorr .ir-txt { color: var(--destaque); font-size: 11.5px; font-weight: 600; }
+  .ocorr li.nao-achou .ir-txt { color: var(--suave); }
+  .acoes { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-top: 3px; }
+  .acoes:empty { display: none; }
+  .bt.mini { font-size: 12px; padding: 3px 8px; border-radius: 6px; }
+  .corrigir-regra { padding: 0 10px 8px; }
+  .mais { margin: 0 10px 10px; font: inherit; font-size: 12.5px; color: var(--destaque); background: none; border: 0; padding: 0; cursor: pointer; }
+
+  label { font-weight: 600; font-size: 12.5px; display: block; margin-bottom: 3px; }
+  input, select, textarea { width: 100%; font: inherit; padding: 6px 8px; border: 1px solid var(--borda); border-radius: 6px; background: var(--cartao); color: var(--texto); }
+  textarea { min-height: 56px; resize: vertical; }
+  .campo small { display: block; color: var(--suave); font-size: 11.5px; margin-top: 2px; }
+  .checkbox { display: flex; gap: 6px; align-items: flex-start; font-weight: 400; }
+  .checkbox input { width: auto; margin-top: 3px; }
+  .obrig { color: var(--erro); margin-left: 2px; }
+  .grade2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .previa { background: var(--cartao); border: 1px solid var(--borda); border-radius: 8px; padding: 10px; font-family: Arial, sans-serif; font-size: 13px; overflow-wrap: anywhere; }
+  .previa.vazia { color: var(--suave); font-family: inherit; }
+  .faltando { color: var(--aviso); background: var(--aviso-fundo); border-radius: 6px; padding: 6px 8px; font-size: 12.5px; }
+  .botoes { display: grid; gap: 6px; }
+  .toast { position: fixed; left: 12px; right: 12px; bottom: 12px; background: var(--texto); color: var(--fundo); padding: 8px 12px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.on { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="abas" role="tablist">
+  <button role="tab" id="aba-verificar" aria-selected="true" aria-controls="p-verificar">Verificar</button>
+  <button role="tab" id="aba-refs" aria-selected="false" aria-controls="p-refs">Referências</button>
+</div>
+
+<section id="p-verificar" role="tabpanel">
+  <button class="bt prim larg" id="bt-verificar" type="button">Verificar documento</button>
+  <div id="fora-word" hidden>
+    <p class="nota">Este painel foi feito para abrir dentro do Word. Fora dele, escolha um arquivo .docx para testar:</p>
+    <input type="file" id="arquivo" accept=".docx">
+  </div>
+  <p class="nota" id="dica-verificar">Confere margens, fonte, espaçamento, títulos, citações, ilustrações, resumo e referências. Clique num trecho para ir até ele no documento.</p>
+  <div id="resultado" aria-live="polite"></div>
+</section>
+
+<section id="p-refs" role="tabpanel" hidden>
+  <div class="campo">
+    <label for="tipo">Tipo de referência</label>
+    <select id="tipo"></select>
+  </div>
+  <div id="form" style="display:grid;gap:8px"></div>
+  <div>
+    <label>Como fica</label>
+    <div class="previa vazia" id="previa">Preencha os campos acima.</div>
+  </div>
+  <div class="faltando" id="faltando" hidden></div>
+  <div class="botoes">
+    <button class="bt prim" id="bt-ref" type="button" disabled>Inserir referência</button>
+    <button class="bt" id="bt-cit-par" type="button" disabled>Inserir citação</button>
+    <button class="bt" id="bt-cit-nar" type="button" disabled>Inserir citação narrativa</button>
+    <button class="bt" id="bt-limpar" type="button">Limpar campos</button>
+  </div>
+  <p class="nota">A referência entra num parágrafo novo, abaixo do cursor, alinhada à esquerda e com espaçamento simples. As citações entram no ponto onde está o cursor.</p>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="../verificador/vendor/jszip.min.js"></script>
+<script src="../verificador/verificador.js"></script>
+<script src="../referencias/abnt-ref.js"></script>
+<script src="painel.js"></script>
+</body>
+</html>

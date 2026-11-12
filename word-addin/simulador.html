@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Simulador do painel</title>
+<!-- Ferramenta de desenvolvimento: roda o painel fora do Word, com um Word de mentira que
+     registra as alterações pedidas. Uso: abra com ?docx=caminho/do/arquivo.docx -->
+<script src="../verificador/vendor/jszip.min.js"></script>
+<script>
+(function () {
+  const log = (window.__log = []);
+  let textos = [];
+  const url = new URLSearchParams(location.search).get("docx");
+  const pronto = fetch(url).then((r) => r.arrayBuffer()).then(async (buf) => {
+    window.__buf = buf;
+    const xml = await (await JSZip.loadAsync(buf)).file("word/document.xml").async("string");
+    const doc = new DOMParser().parseFromString(xml, "application/xml");
+    const W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+    textos = [...doc.getElementsByTagNameNS(W, "p")].map((p) => ({
+      texto: [...p.getElementsByTagNameNS(W, "t")].map((t) => t.textContent).join(""),
+      estilo: (p.getElementsByTagNameNS(W, "pStyle")[0] || { getAttribute: () => "Normal" }).getAttribute("w:val"),
+    }));
+  });
+  const trechos = (n, termo) => {
+    const t = termo.replace(/\^\^/g, "^"), itens = [];
+    let k = textos[n].texto.indexOf(t);
+    while (k >= 0) {
+      itens.push({ style: textos[n].estilo, paragraphs: { getFirst: () => paragrafo(n) }, select: () => log.push(`p${n}.select(${JSON.stringify(t)})`),
+        insertText: (x, onde) => log.push(`p${n}.insertText(${JSON.stringify(t)} -> ${JSON.stringify(x)},${onde})`) });
+      k = textos[n].texto.indexOf(t, k + 1);
+    }
+    return itens;
+  };
+  const paragrafo = (n) => new Proxy({ text: textos[n].texto, font: new Proxy({}, { set: (o, k, v) => (log.push(`p${n}.font.${k}=${v}`), true) }),
+    insertBreak: (t, onde) => log.push(`p${n}.insertBreak(${t},${onde})`), select: () => log.push(`p${n}.select()`),
+    search: (termo) => ({ items: trechos(n, termo), load() {} }) },
+    { set: (o, k, v) => (log.push(`p${n}.${k}=${v}`), true) });
+  window.Office = {
+    HostType: { Word: "Word" }, FileType: { Compressed: "compressed" }, AsyncResultStatus: { Succeeded: "succeeded" },
+    onReady: (cb) => pronto.then(() => cb({ host: "Word" })),
+    context: { document: { getFileAsync: (t, o, cb) => cb({ status: "succeeded", value: {
+      sliceCount: 1, closeAsync: () => {}, getSliceAsync: (i, cb2) => cb2({ status: "succeeded", value: { data: [...new Uint8Array(window.__buf)] } }),
+    } }) } },
+  };
+  window.Word = {
+    BreakType: { page: "Page" }, Style: { normal: "Normal" },
+    run: async (fn) => fn({
+      sync: async () => {},
+      document: {
+        getSelection: () => ({ select() {} }),
+        body: { paragraphs: { get items() { return textos.map((p, n) => paragrafo(n)); }, load() {} }, search: (termo) => {
+          const t = termo.replace(/\^\^/g, "^");
+          const items = [];
+          textos.forEach((p, n) => { if (p.texto.includes(t)) items.push({ style: p.estilo, paragraphs: { getFirst: () => paragrafo(n) },
+            insertText: (x, onde) => log.push(`p${n}.insertText(${JSON.stringify(t)} -> ${JSON.stringify(x)},${onde})`), select() {} }); });
+          return { items, load() {} };
+        } },
+      },
+    }),
+  };
+})();
+</script>
+</head>
+<body>
+<iframe hidden></iframe>
+<script>
+  // carrega o painel de verdade, sem o office.js do Office
+  fetch("painel.html").then((r) => r.text()).then((html) => {
+    html = html.replace(/<script src="https:\/\/appsforoffice[^>]*><\/script>/, "");
+    const corpo = html.slice(html.indexOf("<body>") + 6, html.indexOf("<script src=\"../verificador/vendor"));
+    const estilo = html.match(/<style>[\s\S]*?<\/style>/)[0];
+    document.head.insertAdjacentHTML("beforeend", estilo);
+    document.body.insertAdjacentHTML("beforeend", corpo);
+    for (const src of ["../verificador/verificador.js", "../referencias/abnt-ref.js", "painel.js"]) {
+      const s = document.createElement("script"); s.src = src; s.async = false; document.body.appendChild(s);
+    }
+  });
+</script>
+</body>
+</html>
