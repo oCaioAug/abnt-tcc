@@ -390,4 +390,8 @@ function construir() {
 }
 
 
-module.exports = { construir };
+module.exports = {
+  construir,
+  // partes reaproveitadas pelo modelo de artigo
+  runs, p, instr, secao, pre, pos, legenda, tabelaExemplo, pagina, referencias, apendice, anexo,
+};

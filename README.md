@@ -1,14 +1,17 @@
 # Modelo ABNT para TCC
 
-Modelo de monografia (TCC) já formatado segundo as normas da ABNT, para Word e LibreOffice.
+Modelos de monografia (TCC) e de artigo científico já formatados segundo as normas da ABNT, para Word e LibreOffice.
 
 ## Arquivos prontos (`dist/`)
 
 | Arquivo | Para quê |
 |---|---|
-| `Modelo-TCC-Monografia-ABNT.dotx` | Modelo do Word. Dar dois cliques cria um documento novo com tudo configurado. Também abre no LibreOffice. |
-| `Modelo-TCC-Monografia-ABNT.docx` | O mesmo conteúdo como documento comum, para editar direto. |
-| `Modelo-TCC-Monografia-ABNT.pdf` | Prévia de como fica impresso. |
+| `Modelo-TCC-Monografia-ABNT.dotx` | Monografia (NBR 14724). Dar dois cliques cria um documento novo com tudo configurado. Também abre no LibreOffice. |
+| `Modelo-Artigo-ABNT.dotx` | Artigo científico (NBR 6022:2018): título, autoria com nota de rodapé, resumo e abstract (100 a 250 palavras), datas de submissão e aprovação, texto corrido, referências, apêndice, anexo e agradecimentos. |
+| `*.docx` | O mesmo conteúdo como documento comum, para editar direto. |
+| `*.pdf` | Prévia de como fica impresso. |
+
+No artigo, as seções não começam em página nova e não há capa nem sumário. Revistas e cursos costumam ter regras próprias de tamanho e formatação: confira as do seu orientador ou do periódico.
 
 ## Como usar
 
@@ -66,6 +69,8 @@ O relatório separa **erros**, **pontos de atenção** e **o que está dentro da
 | Resumo em parágrafo único, de 150 a 500 palavras, com palavras-chave | NBR 6028:2021 |
 | Referências alinhadas à esquerda, espaçamento simples, em ordem alfabética | NBR 6023:2018 |
 | Orientações e textos “[entre colchetes]” do modelo ainda não apagados | — |
+
+O verificador detecta sozinho se o trabalho é **monografia** ou **artigo** (o artigo não tem sumário e chega logo à introdução) e mostra qual tipo usou; dá para escolher o tipo à mão no topo da página. No artigo, a regra de página nova não se aplica, o abstract e o sumário não são exigidos e o resumo vai de 100 a 250 palavras.
 
 O verificador não enxerga a paginação final (isso depende do Word ou do LibreOffice). Por isso, conferências como “o número só aparece a partir da Introdução” continuam sendo manuais. As regras ficam em `verificador/verificador.js`.
 
@@ -136,5 +141,6 @@ O último passo tira dos arquivos o nome de quem os salvou, que o Word grava aut
 
 - `src/abnt.js`: regras de formatação (margens, fonte, estilos), compartilhadas por todos os modelos.
 - `src/monografia.js`: conteúdo e estrutura da monografia.
-- Para criar o modelo de **artigo (NBR 6022)**, adicione um `src/artigo.js` reaproveitando `abnt.js` e registre-o no `build.js`.
+- `src/artigo.js`: conteúdo e estrutura do artigo (reaproveita partes da monografia; usa `estilos({ novaPagina: false })` para o texto corrido).
+- `build.js` também remove o "recomeçar em 1" que a biblioteca docx grava nas listas: o Word às vezes aplicava esse recomeço no meio do texto e numerava uma seção como 1.
 - Para trocar a fonte para Times New Roman, altere `FONTE` em `src/abnt.js`.

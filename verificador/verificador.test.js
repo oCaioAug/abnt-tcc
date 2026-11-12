@@ -30,6 +30,29 @@ test("o próprio modelo não tem erros, só avisos de conteúdo a preencher", { 
   }
 });
 
+// ------------------------------------------------------------ o modelo de artigo (NBR 6022)
+const ARTIGO = path.join(__dirname, "..", "dist", "Modelo-Artigo-ABNT.docx");
+
+test("o modelo de artigo é reconhecido como artigo e não tem erros", { skip: !fs.existsSync(ARTIGO) }, async () => {
+  const r = await rodar(fs.readFileSync(ARTIGO));
+  assert.equal(r.tipo, "artigo");
+  assert.equal(r.tipoDetectado, true);
+  assert.deepEqual(r.itens.filter((x) => x.nivel === "erro").map((x) => `${x.id}: ${detalhes(r, x.id)}`), []);
+  assert.equal(item(r, "titulo-pagina").nivel, "info");            // texto corrido
+  assert.match(detalhes(r, "resumo"), /de 100 a 250/);
+
+  // forçando "monografia", as exigências da NBR 14724 voltam
+  const m = await verificar(fs.readFileSync(ARTIGO), { JSZip, DOMParser, tipo: "monografia" });
+  assert.equal(m.tipo, "monografia");
+  assert.match(m.itens.find((x) => x.id === "estrutura").ocorrencias.map((o) => o.trecho).join(","), /Sumário/);
+  assert.equal(m.itens.find((x) => x.id === "titulo-pagina").nivel, "erro");
+});
+
+test("o modelo de monografia é reconhecido como monografia", { skip: !fs.existsSync(MODELO) }, async () => {
+  const r = await rodar(fs.readFileSync(MODELO));
+  assert.equal(r.tipo, "monografia");
+});
+
 // ------------------------------------------------------------ um TCC cheio de erros
 async function documentoComErros() {
   const corpo = { font: "Times New Roman", size: 22 }; // 11 pt

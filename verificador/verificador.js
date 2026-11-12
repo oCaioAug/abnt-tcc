@@ -276,7 +276,7 @@
   const tamanhos = (b) => [...new Set(b.runs.filter((r) => r.texto.trim() && !r.props.sobrescrito).map((r) => r.props.tamanho ?? 10))];
 
   // ---------------------------------------------------------------- verificação
-  function analisar(arquivos, DOMParserCls) {
+  function analisar(arquivos, DOMParserCls, opcoes = {}) {
     const parser = new DOMParserCls();
     const xml = (nome) => (arquivos[nome] ? parser.parseFromString(arquivos[nome], "application/xml") : null);
     const docXml = xml("word/document.xml");
@@ -297,20 +297,29 @@
     const iRef = idx(/^REFER[ÊE]NCIAS( BIBLIOGR[ÁA]FICAS)?$/, Math.max(iIntro, 0));
     let iFimRef = iRef < 0 ? -1 : blocos.findIndex((b, i) => i > iRef && b.tipo === "p" && ehTitulo(b) && !b.emSumario);
     if (iRef >= 0 && iFimRef < 0) iFimRef = blocos.length;
+    // Artigo (NBR 6022) ou monografia (NBR 14724)? O artigo não tem sumário e chega
+    // rápido à introdução; a monografia tem capa, folha de rosto e outros pré-textuais antes.
+    const temSumario = ps.some((b) => b.texto.length <= 80 && /^SUM[ÁA]RIO$/.test(normaliza(b.texto)));
+    const antesDaIntro = iIntro < 0 ? Infinity : blocos.slice(0, iIntro).filter((b) => b.tipo === "p" && b.texto && !b.instrucao).length;
+    const tipo = opcoes.tipo === "artigo" || opcoes.tipo === "monografia" ? opcoes.tipo : (!temSumario && antesDaIntro <= 40 ? "artigo" : "monografia");
+    const artigo = tipo === "artigo";
     const inicioTexto = iIntro >= 0 ? iIntro : 0;
     const fimTexto = iRef >= 0 ? iRef : blocos.length;
     const naParteTextual = (i) => i >= inicioTexto && i < fimTexto;
 
     // ----- 1. elementos obrigatórios
     {
-      const r = rel.regra("estrutura", "Elementos obrigatórios", "NBR 14724, 4");
+      const r = rel.regra("estrutura", "Elementos obrigatórios", artigo ? "NBR 6022:2018, 4" : "NBR 14724, 4");
       const presentes = (re) => ps.some((b) => !b.emSumario && b.texto.length <= 80 && re.test(normaliza(b.texto)));
-      const exigidos = [
-        ["Resumo", /^RESUMO$/], ["Resumo em língua estrangeira (Abstract)", /^(ABSTRACT|RESUMEN|RÉSUMÉ|RESUME)$/],
-        ["Sumário", /^SUM[ÁA]RIO$/], ["Introdução", /^INTRODU[ÇC][ÃA]O$/], ["Referências", /^REFER[ÊE]NCIAS/],
-      ];
+      // no artigo, o resumo em outro idioma é opcional e não há sumário
+      const exigidos = artigo
+        ? [["Resumo", /^RESUMO$/], ["Introdução", /^INTRODU[ÇC][ÃA]O$/], ["Referências", /^REFER[ÊE]NCIAS/]]
+        : [
+          ["Resumo", /^RESUMO$/], ["Resumo em língua estrangeira (Abstract)", /^(ABSTRACT|RESUMEN|RÉSUMÉ|RESUME)$/],
+          ["Sumário", /^SUM[ÁA]RIO$/], ["Introdução", /^INTRODU[ÇC][ÃA]O$/], ["Referências", /^REFER[ÊE]NCIAS/],
+        ];
       for (const [nome, re] of exigidos) if (!presentes(re)) r.problema("erro", nome, "não encontrado no documento");
-      r.msg(r.it.nivel === "ok" ? "Resumo, abstract, sumário, introdução e referências encontrados." : "Faltam elementos obrigatórios (ou o título está escrito de outra forma).");
+      r.msg(r.it.nivel === "ok" ? (artigo ? "Resumo, introdução e referências encontrados." : "Resumo, abstract, sumário, introdução e referências encontrados.") : "Faltam elementos obrigatórios (ou o título está escrito de outra forma).");
     }
 
     // ----- 2. papel e margens
@@ -472,7 +481,7 @@
             const t = tamanhos(b).filter((x) => x !== 12);
             if (t.length) rTam.problema("erro", b, `tamanho ${t.join(", ").replace(/\./g, ",")} (todo o trabalho, inclusive títulos, usa tamanho 12)`, { formato: { tamanho: 12 } });
           }
-          if (titulo && (b.nivel === 1 || semNumero) && !(b.props.quebraAntes || quebra) && i > 0) {
+          if (!artigo && titulo && (b.nivel === 1 || semNumero) && !(b.props.quebraAntes || quebra) && i > 0) {
             rNova.problema("erro", b, "não começa em nova página", { quebraAntes: true });
           }
           if (titulo && semNumero) {
@@ -497,7 +506,8 @@
           if (tipo !== "continuous") quebra = true;
         }
       });
-      rNova.msg(rNova.it.nivel === "ok" ? "Seções primárias e títulos sem número começam em página nova." : "Use Inserir > Quebra de Página antes do título, ou ative “Quebra de página antes” no estilo Título 1.");
+      if (artigo) rNova.info("No artigo (NBR 6022) o texto é corrido: as seções não começam em página nova.");
+      else rNova.msg(rNova.it.nivel === "ok" ? "Seções primárias e títulos sem número começam em página nova." : "Use Inserir > Quebra de Página antes do título, ou ative “Quebra de página antes” no estilo Título 1.");
       rNum.msg(rNum.it.nivel === "ok" ? "Seções do texto numeradas; títulos de elementos pré e pós-textuais sem número." : rNum.it.nivel === "aviso" ? "Apêndices e anexos são identificados por letra, travessão e título." : "As seções do texto são numeradas (1, 1.1, 1.1.1...). Resumo, sumário, referências, apêndices e anexos não levam número.");
       rCentro.msg(rCentro.it.nivel === "ok" ? "Títulos sem número centralizados." : "Resumo, abstract, listas, sumário, referências, apêndices e anexos têm título centralizado.");
       rEsq.msg(rEsq.it.nivel === "ok" ? "Títulos numerados alinhados à esquerda." : "Títulos com número ficam na margem esquerda; só os títulos sem número (resumo, sumário, referências…) são centralizados.");
@@ -599,7 +609,7 @@
 
     // ----- 16. resumo
     {
-      const r = rel.regra("resumo", "Resumo: parágrafo único, 150 a 500 palavras, palavras-chave", "NBR 6028:2021");
+      const r = rel.regra("resumo", `Resumo: parágrafo único, ${artigo ? "100 a 250" : "150 a 500"} palavras, palavras-chave`, "NBR 6028:2021");
       const iRes = idx(/^RESUMO$/);
       if (iRes < 0) r.info("Resumo não encontrado.");
       else {
@@ -607,7 +617,8 @@
         const pars = blocos.slice(iRes + 1, fim < 0 ? undefined : fim).filter((b) => b.tipo === "p" && b.texto && !b.instrucao);
         const palavras = pars.map((b) => b.texto.split(/\s+/).filter(Boolean).length).reduce((a, n) => a + n, 0);
         if (pars.length > 1) r.problema("aviso", pars[1], `o resumo tem ${pars.length} parágrafos; deve ser parágrafo único`);
-        if (palavras < 150 || palavras > 500) r.problema("aviso", pars[0] || "RESUMO", `${palavras} palavras (o ideal para trabalhos acadêmicos é de 150 a 500)`);
+        const [min, max] = artigo ? [100, 250] : [150, 500];
+        if (palavras < min || palavras > max) r.problema("aviso", pars[0] || "RESUMO", `${palavras} palavras (${artigo ? "em artigos, de 100 a 250" : "o ideal para trabalhos acadêmicos é de 150 a 500"})`);
         const kw = fim >= 0 && /^palavras?[- ]chave/i.test(blocos[fim].texto) ? blocos[fim] : null;
         if (!kw) r.problema("erro", "RESUMO", "faltam as palavras-chave logo abaixo do resumo");
         else {
@@ -621,7 +632,7 @@
           if (virgulas) r.problema("aviso", kw, "separe as palavras-chave com ponto e vírgula", corr);
           if (semPonto) r.problema("aviso", kw, "finalize as palavras-chave com ponto", virgulas ? undefined : corr);
         }
-        r.msg(r.it.nivel === "ok" ? `Resumo com ${palavras} palavras, em parágrafo único, com palavras-chave.` : "Resumo: parágrafo único, 150 a 500 palavras, seguido de “Palavras-chave:” separadas por ponto e vírgula e finalizadas por ponto.");
+        r.msg(r.it.nivel === "ok" ? `Resumo com ${palavras} palavras, em parágrafo único, com palavras-chave.` : `Resumo: parágrafo único, ${artigo ? "100 a 250" : "150 a 500"} palavras, seguido de “Palavras-chave:” separadas por ponto e vírgula e finalizadas por ponto.`);
       }
     }
 
@@ -641,6 +652,7 @@
       resumo,
       itens: rel.itens,
       partes: { introducao: iIntro >= 0, referencias: iRef >= 0, paragrafosDeTexto: corpo.length },
+      tipo, tipoDetectado: !(opcoes.tipo === "artigo" || opcoes.tipo === "monografia"),
     };
   }
 
@@ -656,8 +668,9 @@
     return arquivos;
   }
 
-  async function verificar(dados, { JSZip, DOMParser }) {
-    return analisar(await lerDocx(dados, JSZip), DOMParser);
+  // tipo: "auto" (padrão), "monografia" (NBR 14724) ou "artigo" (NBR 6022)
+  async function verificar(dados, { JSZip, DOMParser, tipo }) {
+    return analisar(await lerDocx(dados, JSZip), DOMParser, { tipo });
   }
 
   return { verificar, analisar, lerDocx };

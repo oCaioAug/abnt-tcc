@@ -30,6 +30,8 @@
   .topo p { margin: 0; color: var(--suave); }
   main { padding-top: 16px; padding-bottom: 16px; display: grid; gap: 16px; }
 
+  .tipo { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px; color: var(--suave); }
+  .tipo select { font: inherit; padding: 6px 8px; border: 1px solid var(--borda); border-radius: 8px; background: var(--cartao); color: var(--texto); }
   .soltar { border: 2px dashed var(--borda); border-radius: 12px; background: var(--cartao); padding: 32px 18px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
   .soltar.sobre { border-color: var(--destaque); }
   .soltar strong { display: block; font-size: 17px; margin-bottom: 4px; }
@@ -76,6 +78,12 @@
 </div>
 
 <main>
+  <label class="tipo">Tipo de trabalho
+    <select id="tipo-trabalho">
+      <option value="auto">Detectar automaticamente</option>
+      <option value="monografia">Monografia / TCC (NBR 14724)</option>
+      <option value="artigo">Artigo (NBR 6022)</option>
+    </select></label>
   <label class="soltar" id="soltar">
     <input type="file" id="arquivo" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
     <strong>Arraste o arquivo .docx aqui</strong>
@@ -98,9 +106,13 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const ROTULO = { erro: "Erro", aviso: "Atenção", ok: "OK", info: "Info" };
   const MOSTRAR = 6;
+  const NOME_TIPO = { monografia: "monografia (NBR 14724)", artigo: "artigo (NBR 6022)" };
+  const linhaTipo = (rel) => `<p class="veredito">Verificado como ${NOME_TIPO[rel.tipo]}${rel.tipoDetectado ? " (detectado automaticamente; mude acima se estiver errado)" : ""}.</p>`;
+  let ultimo = null;
 
   async function processar(arquivo) {
     if (!arquivo) return;
+    ultimo = arquivo;
     const res = $("resultado");
     if (!/\.docx$/i.test(arquivo.name)) {
       res.innerHTML = `<div class="falha">“${esc(arquivo.name)}” não é um arquivo .docx. No Word use Arquivo > Salvar como > Documento do Word (.docx).</div>`;
@@ -108,7 +120,7 @@
     }
     res.innerHTML = `<div class="cartao">Analisando “${esc(arquivo.name)}”…</div>`;
     try {
-      const rel = await VerificadorABNT.verificar(await arquivo.arrayBuffer(), { JSZip: window.JSZip, DOMParser: window.DOMParser });
+      const rel = await VerificadorABNT.verificar(await arquivo.arrayBuffer(), { JSZip: window.JSZip, DOMParser: window.DOMParser, tipo: $("tipo-trabalho").value });
       res.innerHTML = desenhar(arquivo.name, rel);
       res.querySelectorAll("button.mais").forEach((b) => b.onclick = () => {
         b.previousElementSibling.querySelectorAll("li[hidden]").forEach((li) => li.hidden = false);
@@ -144,13 +156,14 @@
           <span class="chip erro">${erros.length} erro(s)</span>
           <span class="chip aviso">${avisos.length} atenção</span>
           <span class="chip ok">${certos.length} ok</span></div>
-        <p class="veredito">${veredito}</p>${aviso}
+        <p class="veredito">${veredito}</p>${linhaTipo(rel)}${aviso}
       </section>
       ${erros.length ? `<h3 class="grupo">Erros</h3>${erros.map((x) => desenharRegra(x, true)).join("")}` : ""}
       ${avisos.length ? `<h3 class="grupo">Pontos de atenção</h3>${avisos.map((x) => desenharRegra(x, true)).join("")}` : ""}
       ${certos.length ? `<h3 class="grupo">Dentro da norma</h3>${certos.map((x) => desenharRegra(x, false)).join("")}` : ""}`;
   }
 
+  $("tipo-trabalho").onchange = () => { if (ultimo) processar(ultimo); };
   const zona = $("soltar");
   $("arquivo").onchange = (e) => processar(e.target.files[0]);
   ["dragenter", "dragover"].forEach((ev) => zona.addEventListener(ev, (e) => { e.preventDefault(); zona.classList.add("sobre"); }));

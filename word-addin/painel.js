@@ -6,6 +6,8 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const ROTULO = { erro: "Erro", aviso: "Atenção", ok: "OK", info: "Info" };
   const MOSTRAR = 5;
+  const NOME_TIPO = { monografia: "monografia (NBR 14724)", artigo: "artigo (NBR 6022)" };
+  const linhaTipo = (rel) => `<p class="nota">Verificado como ${NOME_TIPO[rel.tipo]}${rel.tipoDetectado ? " (detectado automaticamente; mude acima se estiver errado)" : ""}.</p>`;
   // Regras cujas ocorrências não são trechos do texto (seções, cabeçalho, nomes de elementos)
   const SEM_TRECHO = new Set(["papel", "margens", "paginacao", "estrutura", "fonte-familia", "notas"]);
   let noWord = false;
@@ -54,7 +56,7 @@
     const res = $("resultado");
     res.innerHTML = `<p class="nota">Analisando…</p>`;
     try {
-      const rel = await VerificadorABNT.verificar(buf, { JSZip: window.JSZip, DOMParser: window.DOMParser });
+      const rel = await VerificadorABNT.verificar(buf, { JSZip: window.JSZip, DOMParser: window.DOMParser, tipo: $("tipo-trabalho").value });
       relatorio = rel;
       res.innerHTML = desenhar(rel, nome);
       ligarEventos(res);
@@ -72,6 +74,7 @@
       $("resultado").innerHTML = `<div class="falha">O Word não entregou o documento.<br><small>${esc(e.message || e)}</small></div>`;
     } finally { bt.disabled = false; bt.textContent = "Verificar de novo"; }
   }
+  $("tipo-trabalho").onchange = () => { if (relatorio && noWord) verificarAberto(); };
   $("bt-verificar").onclick = () => (noWord ? verificarAberto() : $("arquivo").click());
   $("arquivo").onchange = async (e) => {
     const f = e.target.files[0];
@@ -113,6 +116,7 @@
       : avisos.length ? "Nenhum erro encontrado. Revise os pontos de atenção." : "Tudo certo nos itens verificados.";
     return `${nome ? `<p class="nota">${esc(nome)}</p>` : ""}
       <div class="placar"><span class="chip erro">${erros.length} erro(s)</span><span class="chip aviso">${avisos.length} atenção</span><span class="chip ok">${certos.length} ok</span></div>
+      ${linhaTipo(rel)}
       <p class="nota">${veredito}${rel.partes.introducao ? "" : " Não encontrei o título “Introdução”; algumas regras foram aplicadas ao documento inteiro."}</p>
       ${totalAuto ? `<button class="bt prim larg" type="button" id="bt-corrigir-tudo">Corrigir a formatação automaticamente (${totalAuto})</button>
         <p class="nota">Ajusta espaçamento, fonte, alinhamento, recuos e quebras de página. Trocas de texto (citações, títulos de apêndice) ficam para você conferir uma a uma. Dá para desfazer com Ctrl+Z.</p>` : ""}

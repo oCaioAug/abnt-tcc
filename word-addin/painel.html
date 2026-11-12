@@ -34,6 +34,7 @@
   .nota { color: var(--suave); font-size: 12.5px; margin: 0; }
   .falha { background: var(--erro-fundo); color: var(--erro); border-radius: 8px; padding: 10px; }
 
+  .tipo { display: grid; gap: 3px; font-size: 12.5px; font-weight: 600; }
   .placar { display: flex; gap: 6px; flex-wrap: wrap; }
   .chip { border-radius: 999px; padding: 2px 10px; font-size: 12.5px; font-weight: 600; }
   .chip.erro { background: var(--erro-fundo); color: var(--erro); }
@@ -86,6 +87,12 @@
 </div>
 
 <section id="p-verificar" role="tabpanel">
+  <label class="tipo">Tipo de trabalho
+    <select id="tipo-trabalho">
+      <option value="auto">Detectar automaticamente</option>
+      <option value="monografia">Monografia / TCC (NBR 14724)</option>
+      <option value="artigo">Artigo (NBR 6022)</option>
+    </select></label>
   <button class="bt prim larg" id="bt-verificar" type="button">Verificar documento</button>
   <div id="fora-word" hidden>
     <p class="nota">Este painel foi feito para abrir dentro do Word. Fora dele, escolha um arquivo .docx para testar:</p>

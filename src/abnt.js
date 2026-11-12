@@ -39,7 +39,9 @@ const RECUO_CITACAO = cm(4);
 const RECUO_NATUREZA = cm(8); // do meio da mancha gráfica para a margem direita
 
 // ---------------------------------------------------------------- estilos
-function estilos() {
+// novaPagina: na monografia (NBR 14724) seções primárias e títulos sem número começam em
+// página nova; no artigo (NBR 6022) o texto é corrido e o título só ganha uma linha em branco antes.
+function estilos({ novaPagina = true } = {}) {
   const corpo = { font: FONTE, size: pt(12) };
   const menor = { font: FONTE, size: pt(10) };
   const semRecuo = { indent: { left: 0, firstLine: 0 } };
@@ -53,7 +55,7 @@ function estilos() {
     run: { ...corpo, bold: false, italics: false, allCaps: false, color: "000000", ...run },
     paragraph: {
       alignment: AlignmentType.LEFT,
-      spacing: { before: nivel === 0 ? 0 : UMA_LINHA, after: UMA_LINHA, line: LINHA_1_5 },
+      spacing: { before: nivel === 0 && novaPagina ? 0 : UMA_LINHA, after: UMA_LINHA, line: LINHA_1_5 },
       ...semRecuo,
       keepNext: true,
       keepLines: true,
@@ -68,10 +70,10 @@ function estilos() {
     run: { ...corpo, bold: true, allCaps: true },
     paragraph: {
       alignment: AlignmentType.CENTER,
-      spacing: { before: 0, after: UMA_LINHA, line: LINHA_1_5 },
+      spacing: { before: novaPagina ? 0 : UMA_LINHA, after: UMA_LINHA, line: LINHA_1_5 },
       ...semRecuo,
       keepNext: true,
-      pageBreakBefore: true,
+      ...(novaPagina ? { pageBreakBefore: true } : {}),
       ...(outline === undefined ? {} : { outlineLevel: outline }),
     },
   });
@@ -111,7 +113,7 @@ function estilos() {
 
       // Seções numeradas (NBR 6024): a tipografia diferencia os níveis
       // e é repetida no sumário.
-      tituloSecao(0, { bold: true, allCaps: true }, { pageBreakBefore: true }), // 1 SEÇÃO PRIMÁRIA
+      tituloSecao(0, { bold: true, allCaps: true }, novaPagina ? { pageBreakBefore: true } : {}), // 1 SEÇÃO PRIMÁRIA
       tituloSecao(1, { allCaps: true }),                                       // 1.1 SEÇÃO SECUNDÁRIA
       tituloSecao(2, { bold: true }),                                          // 1.1.1 Seção terciária
       tituloSecao(3, {}),                                                      // 1.1.1.1 Seção quaternária
