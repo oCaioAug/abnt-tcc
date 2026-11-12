@@ -31,7 +31,13 @@
     }
     return itens;
   };
-  const paragrafo = (n) => new Proxy({ text: textos[n].texto, font: new Proxy({}, { set: (o, k, v) => (log.push(`p${n}.font.${k}=${v}`), true) }),
+  const cacheP = {};
+  const paragrafo = (n) => cacheP[n] || (cacheP[n] = criarParagrafo(n));
+  const rangeLog = (rotulo) => new Proxy({ font: new Proxy({}, { set: (o, k, v) => (log.push(`${rotulo}.font.${k}=${v}`), true) }),
+    insertText: (x, onde) => (log.push(`${rotulo}.insertText(${JSON.stringify(x)},${onde})`), rangeLog(rotulo + "+")) }, {});
+  const criarParagrafo = (n) => new Proxy({ text: textos[n].texto,
+    clear: () => log.push(`p${n}.clear()`),
+    insertText: (x, onde) => (log.push(`p${n}.insertText(${JSON.stringify(x)},${onde})`), rangeLog(`p${n}`)), font: new Proxy({}, { set: (o, k, v) => (log.push(`p${n}.font.${k}=${v}`), true) }),
     insertBreak: (t, onde) => log.push(`p${n}.insertBreak(${t},${onde})`), select: () => log.push(`p${n}.select()`),
     search: (termo) => ({ items: trechos(n, termo), load() {} }) },
     { set: (o, k, v) => (log.push(`p${n}.${k}=${v}`), true) });

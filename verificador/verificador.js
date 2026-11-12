@@ -521,7 +521,7 @@
       if (iRef < 0) r.info("Seção REFERÊNCIAS não encontrada.");
       else {
         const refs = blocos.slice(iRef + 1, iFimRef).filter((b) => b.tipo === "p" && b.texto && !b.instrucao && !b.emTabela);
-        let anterior = null, ordemOk = true;
+        let anterior = null, ordemOk = true, foraDeOrdem = null;
         for (let k = 0; k < refs.length; k++) {
           const b = refs[k];
           const prob = [];
@@ -530,10 +530,31 @@
           if ((b.props.recuoEsq || 0) > 60 || (b.props.primeiraLinha || 0) > 60) prob.push("tem recuo (deve começar na margem esquerda)");
           if (prob.length) r.problema("erro", b, prob.join("; "), { formato: FORMATO_REF });
           if (anterior && entradaRef(anterior.texto).localeCompare(entradaRef(b.texto), "pt-BR", { sensitivity: "base" }) > 0 && ordemOk) {
-            r.problema("erro", b, "fora da ordem alfabética (reordene à mão)");
+            foraDeOrdem = b;
             ordemOk = false;
           }
           anterior = b;
+        }
+        if (foraDeOrdem) {
+          // Correção: reescrever cada parágrafo da lista com a referência que deve ocupar aquela
+          // posição, preservando negrito, itálico, fonte e tamanho de cada trecho.
+          const chave = (b) => entradaRef(b.texto);
+          const ordenadas = [...refs].sort((a, b) => chave(a).localeCompare(chave(b), "pt-BR", { sensitivity: "base" })
+            || a.texto.localeCompare(b.texto, "pt-BR", { sensitivity: "base" }));
+          const segmentos = (b) => b.runs.reduce((acc, x) => {
+            const seg = { t: x.texto, b: !!x.props.negrito, i: !!x.props.italico, f: x.props.fonte, s: x.props.tamanho, sup: !!x.props.sobrescrito };
+            const ult = acc[acc.length - 1];
+            if (ult && ult.b === seg.b && ult.i === seg.i && ult.f === seg.f && ult.s === seg.s && ult.sup === seg.sup) ult.t += seg.t;
+            else acc.push(seg);
+            return acc;
+          }, []);
+          r.problema("erro", foraDeOrdem, `fora da ordem alfabética (a lista tem ${refs.length} referências)`, {
+            individual: true,
+            ordenar: {
+              alvos: refs.map((b) => ({ posicao: b.posicao, trecho: b.texto.slice(0, 110) })),
+              conteudo: ordenadas.map(segmentos),
+            },
+          });
         }
         // separação entre referências: espaço depois ou parágrafo vazio
         const bl = blocos.slice(iRef + 1, iFimRef).filter((b) => b.tipo === "p" && !b.instrucao);

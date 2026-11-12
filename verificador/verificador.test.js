@@ -152,6 +152,9 @@ test("aponta cada erro de um documento fora da norma", async () => {
   assert.ok(corr("titulo-pagina").every((c) => c.quebraAntes));
   assert.equal(corr("titulo-centralizado")[0].formato.alinhamento, "centralizado");
   assert.equal(corr("referencias")[0].formato.alinhamento, "esquerda");
+  const ord = corr("referencias").find((c) => c.ordenar).ordenar;
+  assert.deepEqual(ord.alvos.map((a) => a.trecho.slice(0, 5)), ["SOUZA", "ALVES"]);            // ordem atual
+  assert.deepEqual(ord.conteudo.map((segs) => segs.map((s) => s.t).join("").slice(0, 5)), ["ALVES", "SOUZA"]); // ordem certa
   const cit = corr("citacao-2023").map((c) => c.texto.para);
   assert.ok(cit.includes("Silva (2020") && cit.includes("(Souza, 2019"), cit.join(" / "));
   assert.ok(corr("citacao-2023").every((c) => c.individual));

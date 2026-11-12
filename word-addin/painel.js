@@ -90,7 +90,7 @@
     const lis = it.ocorrencias.map((o, i) => {
       const ir = navega && o.trecho && o.posicao !== undefined;
       const c = noWord && o.correcao;
-      const rotulo = c ? (c.texto ? `Trocar por “${esc(c.texto.para.trim())}”` : "Corrigir") : "";
+      const rotulo = !c ? "" : c.ordenar ? `Reordenar as ${c.ordenar.alvos.length} referências` : c.texto ? `Trocar por “${esc(c.texto.para.trim())}”` : "Corrigir";
       return `<li${i >= MOSTRAR ? " hidden" : ""}${ir ? ` class="ir" data-oc="${ri}:${i}" title="Ir para este trecho"` : ""}>` +
         (o.trecho ? `<span>${esc(o.trecho)}${o.trecho.length >= 110 ? "…" : ""}</span>` : "") +
         (o.detalhe ? `<span class="det">${esc(o.detalhe)}</span>` : "") +
@@ -236,6 +236,11 @@
         const itens = await paragrafosDoWord(ctx);
         // primeiro acha tudo (as quebras de página inseridas mudariam as posições), depois altera
         const plano = alvos.map((a) => {
+          if (a.correcao.ordenar) {
+            // todos os parágrafos da lista precisam ser achados, e cada um uma só vez
+            const ps = a.correcao.ordenar.alvos.map((x) => acharParagrafo(itens, { posicao: x.posicao, trecho: x.trecho }));
+            return ps.every(Boolean) && new Set(ps).size === ps.length ? { a, ps } : null;
+          }
           const p = acharParagrafo(itens, a);
           if (!p) return null;
           if (!a.correcao.texto) return { a, p };
@@ -247,7 +252,10 @@
         for (const x of plano) {
           if (!x) { faltaram++; continue; }
           const c = x.a.correcao;
-          if (c.texto) {
+          if (c.ordenar) {
+            // cada posição da lista recebe a referência que deve ficar ali (formatação de cada trecho preservada)
+            x.ps.forEach((p, k) => { p.clear(); escreverSegmentos(p, c.ordenar.conteudo[k], "Start"); });
+          } else if (c.texto) {
             const r = x.res.items[x.a.ordem] || x.res.items[0];
             if (!r) { faltaram++; continue; }
             r.insertText(c.texto.para, "Replace");
@@ -348,6 +356,9 @@
       r = r ? r.insertText(s.t, "After") : alvo.insertText(s.t, local);
       r.font.bold = !!s.b;
       r.font.italic = !!s.i;
+      if (s.f) r.font.name = s.f;          // vindos do documento (reordenar referências)
+      if (s.s) r.font.size = s.s;
+      if (s.sup !== undefined) r.font.superscript = !!s.sup;
     }
     return r;
   }
