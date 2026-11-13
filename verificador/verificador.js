@@ -5,7 +5,7 @@
  * formatação efetiva de cada parágrafo (padrões do documento -> estilos ->
  * formatação direta) e confere com:
  *   NBR 14724:2011 (apresentação), 6024:2012 (numeração), 6027:2012 (sumário),
- *   6028:2021 (resumo), 10520:2023 (citações), 6023:2018 (referências).
+ *   6028:2021 (resumo), 10520:2023 (citações), 6023:2025 (referências).
  *
  * Sem dependências próprias: recebe um DOMParser e um JSZip, para rodar
  * no navegador e no Node (testes).
@@ -283,7 +283,7 @@
       trata: "Estrutura de TCCs, dissertações e teses (elementos pré-textuais, textuais e pós-textuais) e regras de formatação: papel, margens, fonte, espaçamento, paginação, ilustrações e tabelas." },
     { codigo: "NBR 6022:2018", titulo: "Artigo em publicação periódica técnica e/ou científica — Apresentação",
       trata: "Estrutura do artigo: título, autoria, resumos, datas, introdução, desenvolvimento, considerações finais e pós-textuais." },
-    { codigo: "NBR 6023:2018", titulo: "Referências — Elaboração",
+    { codigo: "NBR 6023:2025", titulo: "Referências — Elaboração",
       trata: "Como escrever cada tipo de referência e como apresentar a lista (alinhamento, espaçamento e ordenação)." },
     { codigo: "NBR 6024:2012", titulo: "Numeração progressiva das seções de um documento — Apresentação",
       trata: "Numeração das seções (1, 1.1, 1.1.1...), até a seção quinária, e destaque gráfico dos títulos de cada nível." },
@@ -360,7 +360,7 @@
       explica: "Os títulos usam o mesmo tamanho 12 do texto. A diferença entre os níveis é feita com negrito, itálico ou maiúsculas, igual no texto e no sumário.",
     },
     referencias: {
-      norma: "NBR 6023:2018",
+      norma: "NBR 6023:2025",
       explica: "As referências ficam alinhadas à margem esquerda, em espaçamento simples, separadas umas das outras por uma linha em branco de espaço simples, e ordenadas alfabeticamente pela entrada (sobrenome ou instituição).",
     },
     "citacao-2023": {
@@ -663,7 +663,7 @@
 
     // ----- 12. referências
     {
-      const r = rel.regra("referencias", "Lista de referências", "NBR 6023:2018, 6");
+      const r = rel.regra("referencias", "Lista de referências", "NBR 6023:2025");
       if (iRef < 0) r.info("Seção REFERÊNCIAS não encontrada.");
       else {
         const refs = blocos.slice(iRef + 1, iFimRef).filter((b) => b.tipo === "p" && b.texto && !b.instrucao && !b.emTabela);

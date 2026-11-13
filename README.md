@@ -32,7 +32,7 @@ No artigo, as seções não começam em página nova e não há capa nem sumári
 Abra o arquivo `referencias/index.html` no navegador (dois cliques). Não precisa de internet nem de instalar nada.
 
 1. Escolha o tipo: livro, capítulo, artigo, TCC/dissertação/tese, trabalho em evento, site ou legislação.
-2. Preencha os campos. A referência (NBR 6023:2018) aparece na hora, junto com a forma de citá-la no texto (NBR 10520:2023), por exemplo `(Gil, 2017)` e `Gil (2017)`.
+2. Preencha os campos. A referência (NBR 6023:2025) aparece na hora, junto com a forma de citá-la no texto (NBR 10520:2023), por exemplo `(Gil, 2017)` e `Gil (2017)`.
 3. Clique em **Adicionar à lista**. A lista fica em ordem alfabética e salva neste navegador.
 4. Clique em **Copiar lista completa** e cole sob o título REFERÊNCIAS. O negrito e o itálico vão junto, tanto no Word quanto no LibreOffice.
 
@@ -69,7 +69,7 @@ O relatório separa **erros**, **pontos de atenção** e **o que está dentro da
 | Ilustrações e tabelas com título acima e “Fonte:” abaixo | NBR 14724:2011, 5.8 e 5.9 (tabelas: IBGE) |
 | Notas de rodapé em fonte menor e espaçamento simples | NBR 14724:2011 |
 | Resumo em parágrafo único (150 a 500 palavras; artigo: 100 a 250), com palavras-chave | NBR 6028:2021 |
-| Referências alinhadas à esquerda, espaçamento simples, separadas e em ordem alfabética | NBR 6023:2018 |
+| Referências alinhadas à esquerda, espaçamento simples, separadas e em ordem alfabética | NBR 6023:2025 |
 | Orientações e textos “[entre colchetes]” do modelo ainda não apagados | Do modelo |
 
 Em cada item do relatório, **Por que?** mostra a norma e o que ela pede, resumido com palavras nossas (o texto das normas é protegido e vendido pela ABNT). O número do item da norma só aparece quando é certo; nos outros casos, vai só o nome da norma. As normas e as explicações ficam em `NORMAS` e `REGRAS`, em `verificador/verificador.js`.
@@ -129,7 +129,7 @@ Para publicar em outro endereço https, gere o manifest com `node word-addin/ger
 - Arial 12, espaçamento 1,5, texto justificado e recuo de 1,25 cm na primeira linha.
 - Paginação: a contagem começa na folha de rosto, mas o número só aparece a partir da Introdução, no canto superior direito. A capa não é contada.
 - Estrutura completa da NBR 14724: capa, folha de rosto, ficha catalográfica, folha de aprovação, dedicatória, agradecimentos, epígrafe, resumo, abstract, listas, sumário, capítulos, referências, apêndice e anexo.
-- Exemplos de citação (NBR 10520:2023) e de referência (NBR 6023:2018).
+- Exemplos de citação (NBR 10520:2023) e de referência (NBR 6023:2025).
 
 ## Normas usadas
 
@@ -137,7 +137,7 @@ Para publicar em outro endereço https, gere o manifest com `node word-addin/ger
 |---|---|
 | ABNT NBR 14724:2011 | Trabalhos acadêmicos — Apresentação |
 | ABNT NBR 6022:2018 | Artigo em publicação periódica técnica e/ou científica — Apresentação |
-| ABNT NBR 6023:2018 | Referências — Elaboração |
+| ABNT NBR 6023:2025 (3. ed.) | Referências — Elaboração |
 | ABNT NBR 6024:2012 | Numeração progressiva das seções de um documento — Apresentação |
 | ABNT NBR 6027:2012 | Sumário — Apresentação |
 | ABNT NBR 6028:2021 | Resumo, resenha e recensão — Apresentação |

@@ -292,12 +292,12 @@ function referencias() {
   const ref = (partes) => p(partes, "Referencia");
   return [
     pos("REFERÊNCIAS"),
-    instr("Elemento obrigatório (NBR 6023:2018). Ordem alfabética, alinhadas à esquerda, espaçamento simples e uma linha em branco entre elas (o estilo “Referência” já faz isso). O destaque (negrito) vai no título da obra ou no nome da revista. Modelos de cada tipo (apague os exemplos):"),
+    instr("Elemento obrigatório (NBR 6023:2025). Ordem alfabética, alinhadas à esquerda, espaçamento simples e uma linha em branco entre elas (o estilo “Referência” já faz isso). O destaque (negrito) vai no título da obra ou no nome da revista. Modelos de cada tipo (apague os exemplos):"),
     ref(["NOME DA INSTITUIÇÃO. ", { n: "Título da página" }, ". Cidade, 2024. Disponível em: https://www.exemplo.com.br. Acesso em: 12 nov. 2026."]),
     ref(["SOBRENOME, Prenome. Título do capítulo. ", { i: "In" }, ": SOBRENOME, Prenome (org.). ", { n: "Título do livro" }, ". Cidade: Editora, 2019. p. 10-25."]),
     ref(["SOBRENOME, Prenome. ", { n: "Título do livro" }, ": subtítulo. 2. ed. Cidade: Editora, 2020."]),
     ref(["SOBRENOME, Prenome. ", { n: "Título do trabalho" }, ". 2022. Trabalho de Conclusão de Curso (Graduação em Área) – Nome da Instituição, Cidade, 2022."]),
-    ref(["SOBRENOME, Prenome; SOBRENOME, Prenome. Título do artigo. ", { n: "Nome da Revista" }, ", Cidade, v. 12, n. 3, p. 45-60, jul./set. 2021. DOI: 10.0000/xxxx."]),
+    ref(["SOBRENOME, Prenome; SOBRENOME, Prenome. Título do artigo. ", { n: "Nome da Revista" }, ", Cidade, v. 12, n. 3, p. 45-60, jul./set. 2021. DOI: https://doi.org/10.0000/xxxx."]),
   ];
 }
 

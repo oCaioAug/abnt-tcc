@@ -1,6 +1,6 @@
 /*
  * Núcleo do gerador de referências ABNT.
- *   NBR 6023:2018  – elaboração de referências
+ *   NBR 6023:2025  – elaboração de referências (3. ed.)
  *   NBR 10520:2023 – citações (sobrenome só com inicial maiúscula)
  *
  * Sem dependências: funciona no navegador (global `ABNTRef`) e no Node
@@ -164,8 +164,9 @@
   }
 
   function online(m, d) {
+    // NBR 6023:2025 (exemplos de 7.7.6): o DOI vem como endereço completo, antes do "Disponível em"
     const doi = limpa(d.doi).replace(/^(https?:\/\/)?(dx\.)?doi\.org\//i, "").replace(/^doi:\s*/i, "");
-    if (doi) m.add("DOI: " + doi).ponto();
+    if (doi) m.add("DOI: https://doi.org/" + doi).ponto();
     if (limpa(d.url)) {
       m.add("Disponível em: " + limpa(d.url)).ponto();
       m.add("Acesso em: " + dataABNT(d.acesso || hojeISO())).ponto();
@@ -204,7 +205,8 @@
         limpa(d.localPeriodico),
         limpa(d.volume) && `v. ${limpa(d.volume).replace(/^v\.\s*/i, "")}`,
         limpa(d.numero) && `n. ${limpa(d.numero).replace(/^n\.\s*/i, "")}`,
-        paginas(d.paginas),
+        // NBR 6023:2025, 7.7.6: artigos só eletrônicos usam a e-localização no lugar das páginas
+        limpa(d.eLocalizador) || paginas(d.paginas),
         [abreviaMeses(d.mes), limpa(d.ano)].filter(Boolean).join(" "),
       ].filter(Boolean);
       m.add(limpa(d.periodico), { b: true });
@@ -330,6 +332,7 @@
     numero: { rotulo: "Número / fascículo", tipo: "text" },
     mes: { rotulo: "Mês(es)", tipo: "text", dica: "Ex.: jul./set. ou julho/setembro" },
     doi: { rotulo: "DOI", tipo: "text", dica: "Opcional. Ex.: 10.1590/xxxx" },
+    eLocalizador: { rotulo: "Localizador eletrônico", tipo: "text", dica: "Artigos só on-line, sem páginas. Ex.: e03304" },
     url: { rotulo: "Endereço (URL)", tipo: "text", dica: "Para documentos on-line" },
     acesso: { rotulo: "Data de acesso", tipo: "date" },
     folhas: { rotulo: "Número de folhas", tipo: "text", dica: "Opcional" },
@@ -340,7 +343,7 @@
     nomeEvento: { rotulo: "Nome do evento", tipo: "text", exemplo: "Congresso Brasileiro de Educação" },
     numeroEvento: { rotulo: "Número do evento", tipo: "text", dica: "Ex.: 10 (para 10º)" },
     anoEvento: { rotulo: "Ano do evento", tipo: "text" },
-    localEvento: { rotulo: "Cidade do evento", tipo: "text" },
+    localEvento: { rotulo: "Cidade do evento", tipo: "text", dica: "Se houver (NBR 6023:2025)" },
     tituloAnais: { rotulo: "Título da publicação", tipo: "text", dica: "Normalmente “Anais”, “Resumos” ou “Proceedings”" },
     jurisdicao: { rotulo: "Jurisdição", tipo: "text", exemplo: "Brasil", dica: "Brasil, nome do estado ou do município" },
     epigrafe: { rotulo: "Epígrafe (tipo, número e data)", tipo: "text", exemplo: "Lei nº 9.394, de 20 de dezembro de 1996" },
@@ -354,7 +357,7 @@
   const TIPOS = {
     livro: { nome: "Livro", campos: [...AUTOR, "titulo", "subtitulo", "edicao", "local", "editora", "ano", "paginasTotal", ...ONLINE], obrigatorios: ["titulo", "ano"] },
     capitulo: { nome: "Capítulo de livro", campos: [...AUTOR, "titulo", "subtitulo", "autoresLivro", "tipoAutorLivro", "responsabilidadeLivro", "tituloLivro", "subtituloLivro", "edicao", "local", "editora", "ano", "paginas", ...ONLINE], obrigatorios: ["titulo", "tituloLivro", "ano", "paginas"] },
-    artigo: { nome: "Artigo de revista", campos: [...AUTOR, "titulo", "subtitulo", "periodico", "localPeriodico", "volume", "numero", "paginas", "mes", "ano", "doi", ...ONLINE], obrigatorios: ["titulo", "periodico", "ano"] },
+    artigo: { nome: "Artigo de revista", campos: [...AUTOR, "titulo", "subtitulo", "periodico", "localPeriodico", "volume", "numero", "paginas", "eLocalizador", "mes", "ano", "doi", ...ONLINE], obrigatorios: ["titulo", "periodico", "ano"] },
     trabalho: { nome: "TCC, dissertação ou tese", campos: [...AUTOR, "titulo", "subtitulo", "ano", "folhas", "tipoTrabalho", "grau", "instituicao", "local", "anoDefesa", ...ONLINE], obrigatorios: ["autores", "titulo", "ano", "grau", "instituicao", "local"] },
     evento: { nome: "Trabalho em evento (anais)", campos: [...AUTOR, "titulo", "subtitulo", "nomeEvento", "numeroEvento", "anoEvento", "localEvento", "tituloAnais", "local", "editora", "ano", "paginas", "doi", ...ONLINE], obrigatorios: ["titulo", "nomeEvento", "anoEvento", "ano"] },
     site: { nome: "Site / documento on-line", campos: [...AUTOR, "titulo", "subtitulo", "local", "ano", ...ONLINE], obrigatorios: ["titulo", "url"] },

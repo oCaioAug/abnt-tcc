@@ -75,7 +75,7 @@ test("capítulo de livro com organizador", () => {
 
 test("artigo de revista com DOI e meses por extenso", () => {
   const r = ref("artigo", { autores: "Maria Souza", titulo: "Título do artigo", periodico: "Revista Brasileira de Educação", localPeriodico: "Rio de Janeiro", volume: "25", numero: "3", paginas: "45-60", mes: "julho/setembro", ano: "2021", doi: "https://doi.org/10.1590/abc" });
-  assert.equal(r.texto, "SOUZA, Maria. Título do artigo. Revista Brasileira de Educação, Rio de Janeiro, v. 25, n. 3, p. 45-60, jul./set. 2021. DOI: 10.1590/abc.");
+  assert.equal(r.texto, "SOUZA, Maria. Título do artigo. Revista Brasileira de Educação, Rio de Janeiro, v. 25, n. 3, p. 45-60, jul./set. 2021. DOI: https://doi.org/10.1590/abc.");
   assert.match(r.html, /<b>Revista Brasileira de Educação<\/b>, Rio/);
 });
 
@@ -114,4 +114,17 @@ test("campos obrigatórios faltando são informados", () => {
 test("ordenação alfabética ignora acentos e negrito", () => {
   const l = ordenar([{ texto: "ÉVORA, B." }, { texto: "SOUZA, A." }, { texto: "ALVES, C." }]);
   assert.deepEqual(l.map((x) => x.texto), ["ALVES, C.", "ÉVORA, B.", "SOUZA, A."]);
+});
+
+test("NBR 6023:2025: artigo só eletrônico usa a e-localização e o DOI como endereço", () => {
+  const r = ref("artigo", { autores: "L. R. Moura" + String.fromCharCode(10) + "L. M. Torres", titulo: "Fatores associados", periodico: "Revista da Escola de Enfermagem da USP",
+    localPeriodico: "São Paulo", volume: "52", eLocalizador: "e03304", ano: "2018", doi: "10.1590/S1980-220X2017020403304",
+    url: "https://www.scielo.br/j/reeusp/a/x/", acesso: "2023-04-07" });
+  assert.equal(r.texto, "MOURA, L. R.; TORRES, L. M. Fatores associados. Revista da Escola de Enfermagem da USP, São Paulo, v. 52, e03304, 2018. DOI: https://doi.org/10.1590/S1980-220X2017020403304. Disponível em: https://www.scielo.br/j/reeusp/a/x/. Acesso em: 7 abr. 2023.");
+});
+
+test("NBR 6023:2025: trabalho em evento sem a cidade do evento", () => {
+  const r = ref("evento", { autores: "Ana Silva", titulo: "Trabalho", nomeEvento: "Congresso Brasileiro de Educação", numeroEvento: "10", anoEvento: "2020", local: "São Paulo", editora: "SBE", ano: "2020", paginas: "1-10" });
+  assert.equal(r.texto, "SILVA, Ana. Trabalho. In: CONGRESSO BRASILEIRO DE EDUCAÇÃO, 10., 2020. Anais [...]. São Paulo: SBE, 2020. p. 1-10.");
+  assert.deepEqual(r.faltando, []);
 });

@@ -7,7 +7,7 @@
 //   NBR 6027:2012   Sumário
 //   NBR 6028:2021   Resumo
 //   NBR 10520:2023  Citações
-//   NBR 6023:2018   Referências
+//   NBR 6023:2025   Referências
 //   Normas de apresentação tabular do IBGE (tabelas)
 
 const {
