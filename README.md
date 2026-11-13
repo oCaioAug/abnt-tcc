@@ -85,7 +85,9 @@ Um painel dentro do Word (Página Inicial > **Painel ABNT**) com duas abas:
 - **Verificar**: confere o documento aberto, inclusive o que ainda não foi salvo, com as mesmas regras do verificador. Clicar num trecho leva até ele no texto.
 - **Corrigir**: depois de verificar, o botão **Corrigir a formatação automaticamente** ajusta espaçamento, tamanho da fonte, alinhamento, recuo das citações longas, títulos sem número centralizados, quebra de página antes dos títulos e a formatação das referências. Trocas de texto (sobrenome em maiúsculas nas citações, travessão nos apêndices, palavras-chave) têm um botão em cada item, para você conferir uma a uma. Depois de corrigir, o painel verifica de novo. Tudo pode ser desfeito com `Ctrl+Z`.
   - Referências fora da ordem alfabética: o botão **Reordenar as N referências** reescreve a lista na ordem certa, mantendo negrito, itálico, fonte e tamanho de cada trecho (links clicáveis voltam como texto comum).
-  - Continua manual: margens, número de página, notas de rodapé e o conteúdo do resumo.
+  - Margens e número de página no canto superior direito também entram na correção automática (requer Microsoft 365 ou Word 2021 ou mais recente; em versões antigas o painel mostra o caminho manual).
+  - Elementos obrigatórios que faltam (resumo, abstract, sumário, introdução, referências) têm o botão **Criar**, que insere o título e um texto de exemplo no lugar certo; o sumário é gerado a partir dos títulos.
+  - Continua manual: notas de rodapé, o conteúdo do resumo e o número só a partir da Introdução (o painel numera todas as páginas).
 - **Referências**: o mesmo gerador de referências. Os botões inserem a referência num parágrafo novo, abaixo do cursor (alinhada à esquerda, espaçamento simples), e a citação, como (Gil, 2017) ou Gil (2017), no ponto do cursor.
 
 Requer Word 2019 ou mais recente, ou Microsoft 365.

@@ -40,22 +40,45 @@
     clear: () => log.push(`p${n}.clear()`),
     insertText: (x, onde) => (log.push(`p${n}.insertText(${JSON.stringify(x)},${onde})`), rangeLog(`p${n}`)), font: new Proxy({}, { set: (o, k, v) => (log.push(`p${n}.font.${k}=${v}`), true) }),
     insertBreak: (t, onde) => log.push(`p${n}.insertBreak(${t},${onde})`), select: () => log.push(`p${n}.select()`),
+    insertParagraph: (x, onde) => novoParagrafo(`p${n}.insertParagraph(${JSON.stringify(x)},${onde})`),
+    getRange: () => rangeLog(`p${n}`),
     search: (termo) => ({ items: trechos(n, termo), load() {} }) },
     { set: (o, k, v) => (log.push(`p${n}.${k}=${v}`), true) });
+  // parágrafos criados pelo painel: n1, n2...
+  let criados = 0;
+  const novoParagrafo = (origem) => {
+    const id = `n${++criados}`;
+    log.push(`${origem} -> ${id}`);
+    return new Proxy({
+      font: new Proxy({}, { set: (o, k, v) => (log.push(`${id}.font.${k}=${v}`), true) }),
+      insertText: (x, onde) => (log.push(`${id}.insertText(${JSON.stringify(x)},${onde})`), rangeLog(id)),
+      insertBreak: (t, onde) => log.push(`${id}.insertBreak(${t},${onde})`),
+      getRange: (onde) => new Proxy({ insertField: (l, tipo) => log.push(`${id}.insertField(${l},${tipo})`) }, {}),
+    }, { set: (o, k, v) => (log.push(`${id}.${k}=${v}`), true) });
+  };
+  // seções, cabeçalhos (vazios, sem campo PAGE) e recursos de versões novas do Word
+  const secoes = () => ({ items: [0, 1].map((i) => ({
+    pageSetup: { set: (v) => log.push(`secao${i}.pageSetup.set(${JSON.stringify(v)})`) },
+    getHeader: () => ({ text: "", load() {}, fields: { items: [], load() {} },
+      insertParagraph: (x, onde) => novoParagrafo(`cabecalho${i}.insertParagraph`),
+      paragraphs: { getFirst: () => novoParagrafo(`cabecalho${i}.primeiroParagrafo`) } }),
+  })), load() {} });
   window.Office = {
     HostType: { Word: "Word" }, FileType: { Compressed: "compressed" }, AsyncResultStatus: { Succeeded: "succeeded" },
     onReady: (cb) => pronto.then(() => cb({ host: "Word" })),
-    context: { document: { getFileAsync: (t, o, cb) => cb({ status: "succeeded", value: {
+    context: { requirements: { isSetSupported: () => true }, document: { getFileAsync: (t, o, cb) => cb({ status: "succeeded", value: {
       sliceCount: 1, closeAsync: () => {}, getSliceAsync: (i, cb2) => cb2({ status: "succeeded", value: { data: [...new Uint8Array(window.__buf)] } }),
     } }) } },
   };
   window.Word = {
-    BreakType: { page: "Page" }, Style: { normal: "Normal" },
+    BreakType: { page: "Page" }, Style: { normal: "Normal", heading1: "Heading1" }, FieldType: { page: "Page" },
     run: async (fn) => fn({
       sync: async () => {},
       document: {
         getSelection: () => ({ select() {} }),
-        body: { paragraphs: { get items() { return textos.map((p, n) => paragrafo(n)); }, load() {} }, search: (termo) => {
+        get sections() { return secoes(); },
+        tablesOfContents: { add: (r, op) => log.push(`sumario.add(${JSON.stringify(op)})`) },
+        body: { insertParagraph: (x, onde) => novoParagrafo(`corpo.insertParagraph(${JSON.stringify(x)},${onde})`), paragraphs: { get items() { return textos.map((p, n) => paragrafo(n)); }, load() {} }, search: (termo) => {
           const t = termo.replace(/\^\^/g, "^");
           const items = [];
           textos.forEach((p, n) => { if (p.texto.includes(t)) items.push({ style: p.estilo, paragraphs: { getFirst: () => paragrafo(n) },

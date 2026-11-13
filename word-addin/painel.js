@@ -97,7 +97,12 @@
     const lis = it.ocorrencias.map((o, i) => {
       const ir = navega && o.trecho && o.posicao !== undefined;
       const c = noWord && o.correcao;
-      const rotulo = !c ? "" : c.ordenar ? `Reordenar as ${c.ordenar.alvos.length} referências` : c.texto ? `Trocar por “${esc(c.texto.para.trim())}”` : "Corrigir";
+      const CRIAR = { resumo: "Criar resumo", abstract: "Criar abstract", sumario: "Criar sumário", introducao: "Criar introdução", referencias: "Criar referências" };
+      const rotulo = !c ? "" : c.ordenar ? `Reordenar as ${c.ordenar.alvos.length} referências`
+        : c.criar ? CRIAR[c.criar.elemento] || "Criar"
+        : c.margens ? "Corrigir margens"
+        : c.paginaNumero ? "Inserir número de página"
+        : c.texto ? `Trocar por “${esc(c.texto.para.trim())}”` : "Corrigir";
       return `<li${i >= MOSTRAR ? " hidden" : ""}${ir ? ` class="ir" data-oc="${ri}:${i}" title="Ir para este trecho"` : ""}>` +
         (o.trecho ? `<span>${esc(o.trecho)}${o.trecho.length >= 110 ? "…" : ""}</span>` : "") +
         (o.detalhe ? `<span class="det">${esc(o.detalhe)}</span>` : "") +
@@ -237,14 +242,133 @@
     if (f.fonte) p.font.name = f.fonte;
   }
 
+  // ------------------------------------------------------------------ correções do documento todo
+  // Margens, número de página e elementos que faltam não dependem de um parágrafo do texto.
+  const suporta = (conjunto, versao) => {
+    try { return Office.context.requirements.isSetSupported(conjunto, versao); } catch (e) { return false; }
+  };
+  const especial = (c) => c.margens || c.paginaNumero || c.criar;
+  class SemSuporte extends Error {}
+
+  async function aplicarMargens(ctx, lista) {
+    if (!suporta("WordApiDesktop", "1.3")) throw new SemSuporte("Esta versão do Word não deixa o painel mudar margens. Ajuste em Layout > Margens > Margens Personalizadas: superior e esquerda 3 cm, inferior e direita 2 cm.");
+    const secoes = ctx.document.sections;
+    secoes.load("items");
+    await ctx.sync();
+    for (const m of lista) {
+      const s = secoes.items[m.secao];
+      if (!s) continue;
+      s.pageSetup.set({ topMargin: m.sup * PT_POR_CM, bottomMargin: m.inf * PT_POR_CM, leftMargin: m.esq * PT_POR_CM, rightMargin: m.dir * PT_POR_CM });
+    }
+    await ctx.sync();
+  }
+
+  // Número de página no canto superior direito de cada seção que ainda não tem.
+  // Seções ligadas à anterior compartilham o cabeçalho: por isso confere uma a uma.
+  async function inserirNumeroDePagina(ctx) {
+    if (!suporta("WordApi", "1.5")) throw new SemSuporte("Esta versão do Word não deixa o painel inserir campos. Use Inserir > Número de Página > Início da Página > Número Simples 3.");
+    const secoes = ctx.document.sections;
+    secoes.load("items");
+    await ctx.sync();
+    for (const s of secoes.items) {
+      const cab = s.getHeader("Primary");
+      const campos = cab.fields;
+      campos.load("items/code");
+      cab.load("text");
+      await ctx.sync();
+      if (campos.items.some((f) => /\bPAGE\b/i.test(f.code || ""))) continue;
+      const p = cab.text.trim() ? cab.insertParagraph("", "End") : cab.paragraphs.getFirst();
+      p.alignment = "Right";
+      p.getRange("Start").insertField("Start", Word.FieldType.page);
+      await ctx.sync();
+    }
+  }
+
+  // Esqueleto do elemento que falta, antes do parágrafo âncora (ou no fim do documento).
+  async function criarElemento(ctx, itens, cr) {
+    const ancora = cr.antes ? acharParagrafo(itens, cr.antes) : null;
+    if (cr.antes && !ancora) return false;
+    const novo = (texto) => {
+      const p = ancora ? ancora.insertParagraph(texto, "Before") : ctx.document.body.insertParagraph(texto, "End");
+      p.styleBuiltIn = Word.Style.normal;
+      p.font.size = 12;
+      p.font.bold = false;
+      p.font.italic = false;
+      return p;
+    };
+    const titulo = (texto) => {
+      const p = novo(texto);
+      p.alignment = "Centered";
+      p.leftIndent = 0;
+      p.firstLineIndent = 0;
+      p.spaceAfter = 18;
+      p.font.bold = true;
+      if (cr.novaPagina) p.insertBreak(Word.BreakType.page, "Before");
+      else p.spaceBefore = 18;
+      return p;
+    };
+    const paragrafo = (texto, extra = {}) => {
+      const p = novo(texto);
+      p.alignment = extra.alinhamento || "Justified";
+      p.firstLineIndent = extra.semRecuo ? 0 : 1.25 * PT_POR_CM;
+      p.lineSpacing = 12 * (extra.linha || 1.5);
+      return p;
+    };
+    const palavrasChave = (rotulo, texto) => {
+      const p = paragrafo("", { semRecuo: true, linha: 1 });
+      p.spaceBefore = 12;
+      escreverSegmentos(p, [{ t: rotulo, b: true }, { t: texto, b: false }], "Start");
+    };
+
+    if (cr.elemento === "resumo") {
+      titulo("RESUMO");
+      paragrafo("[Texto do resumo em parágrafo único, na terceira pessoa: objetivo, método, resultados e conclusões.]", { semRecuo: true, linha: 1 });
+      palavrasChave("Palavras-chave: ", "[palavra 1]; [palavra 2]; [palavra 3].");
+    } else if (cr.elemento === "abstract") {
+      titulo("ABSTRACT");
+      paragrafo("[Abstract text in a single paragraph.]", { semRecuo: true, linha: 1 });
+      palavrasChave("Keywords: ", "[keyword 1]; [keyword 2]; [keyword 3].");
+    } else if (cr.elemento === "sumario") {
+      titulo("SUMÁRIO");
+      const lugar = paragrafo("", { semRecuo: true });
+      if (suporta("WordApiDesktop", "1.4")) {
+        ctx.document.tablesOfContents.add(lugar.getRange(), {
+          upperHeadingLevel: 1, lowerHeadingLevel: 5, includePageNumbers: true, rightAlignPageNumbers: true, useBuiltInHeadingStyles: true,
+        });
+      } else {
+        lugar.insertText("[Insira o sumário em Referências > Sumário > Sumário Automático.]", "Start");
+      }
+    } else if (cr.elemento === "introducao") {
+      const h = novo(`${cr.prefixo || ""}INTRODUÇÃO`);
+      h.styleBuiltIn = Word.Style.heading1;
+      h.alignment = "Left";
+      h.font.size = 12;
+      h.font.bold = true;
+      h.font.color = "#000000";
+      if (cr.novaPagina) h.insertBreak(Word.BreakType.page, "Before");
+      paragrafo("[Texto da introdução: tema, problema de pesquisa, objetivos e justificativa.]");
+    } else if (cr.elemento === "referencias") {
+      titulo("REFERÊNCIAS");
+      paragrafo("[Inclua aqui as referências, em ordem alfabética. A aba Referências deste painel gera cada uma no formato da NBR 6023.]", { alinhamento: "Left", semRecuo: true, linha: 1 });
+    } else return false;
+
+    // o que vem depois continua começando em página nova
+    if (cr.novaPagina && ancora && !cr.antes.jaNovaPagina) ancora.insertBreak(Word.BreakType.page, "Before");
+    await ctx.sync();
+    return true;
+  }
+
   async function corrigir(alvos) {
     if (!alvos.length) return;
     let feitos = 0, faltaram = 0;
+    const limitacoes = [];
     try {
       await Word.run(async (ctx) => {
         const itens = await paragrafosDoWord(ctx);
+        const normais = alvos.filter((a) => !especial(a.correcao));
+        const doDocumento = alvos.filter((a) => especial(a.correcao));
         // primeiro acha tudo (as quebras de página inseridas mudariam as posições), depois altera
-        const plano = alvos.map((a) => {
+        const plano = normais.map((a) => {
           if (a.correcao.ordenar) {
             // todos os parágrafos da lista precisam ser achados, e cada um uma só vez
             const ps = a.correcao.ordenar.alvos.map((x) => acharParagrafo(itens, { posicao: x.posicao, trecho: x.trecho }));
@@ -257,6 +381,8 @@
           res.load("items");
           return { a, p, res };
         });
+        // elementos novos: as âncoras também são achadas antes de qualquer alteração
+        const criacoes = doDocumento.filter((a) => a.correcao.criar);
         if (plano.some((x) => x && x.res)) await ctx.sync();
         for (const x of plano) {
           if (!x) { faltaram++; continue; }
@@ -275,6 +401,20 @@
           feitos++;
         }
         await ctx.sync();
+
+        const tentar = async (fn, qtd) => {
+          try { await fn(); feitos += qtd; } catch (e) {
+            if (e instanceof SemSuporte) limitacoes.push(e.message); else throw e;
+          }
+        };
+        const margens = doDocumento.filter((a) => a.correcao.margens).map((a) => a.correcao.margens);
+        if (margens.length) await tentar(() => aplicarMargens(ctx, margens), margens.length);
+        if (doDocumento.some((a) => a.correcao.paginaNumero)) await tentar(() => inserirNumeroDePagina(ctx), 1);
+        for (const a of criacoes) {
+          // as posições foram lidas antes; depois de cada criação o documento muda, então relê
+          const atuais = await paragrafosDoWord(ctx);
+          if (await criarElemento(ctx, atuais, a.correcao.criar)) feitos++; else faltaram++;
+        }
       });
     } catch (e) {
       aviso("Não foi possível corrigir: " + (e.message || e));
@@ -282,7 +422,10 @@
     }
     aviso(`${feitos} correção(ões) aplicada(s)${faltaram ? `; ${faltaram} trecho(s) não encontrado(s)` : ""}. Verificando de novo…`);
     await verificarAberto();
+    // o que esta versão do Word não deixa fazer aparece no topo do relatório, com o caminho manual
+    if (limitacoes.length) $("resultado").insertAdjacentHTML("afterbegin", limitacoes.map((m) => `<div class="falha">${esc(m)}</div>`).join(""));
   }
+
 
   // ------------------------------------------------------------------ referências
   const { formatar, TIPOS, CAMPOS, hojeISO } = window.ABNTRef;

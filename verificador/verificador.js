@@ -429,7 +429,40 @@
           ["Resumo", /^RESUMO$/], ["Resumo em língua estrangeira (Abstract)", /^(ABSTRACT|RESUMEN|RÉSUMÉ|RESUME)$/],
           ["Sumário", /^SUM[ÁA]RIO$/], ["Introdução", /^INTRODU[ÇC][ÃA]O$/], ["Referências", /^REFER[ÊE]NCIAS/],
         ];
-      for (const [nome, re] of exigidos) if (!presentes(re)) r.problema("erro", nome, "não encontrado no documento");
+      // Onde criar o que falta: cada pré-textual entra antes do próximo elemento que já existe
+      // (resumo -> abstract -> sumário -> introdução); a introdução, antes da primeira seção;
+      // as referências, antes de apêndices/anexos ou no fim do documento.
+      const ORDEM = [["Resumo", /^RESUMO$/], ["Resumo em língua estrangeira (Abstract)", /^(ABSTRACT|RESUMEN|RÉSUMÉ|RESUME)$/],
+        ["Sumário", /^SUM[ÁA]RIO$/], ["Introdução", /^INTRODU[ÇC][ÃA]O$/]];
+      const achar = (re) => ps.find((b) => !b.emSumario && b.texto.length <= 80 && re.test(normaliza(b.texto)));
+      // ancora: o parágrafo antes do qual o elemento entra; jaNovaPagina diz se ele já começa página
+      const ancora = (b) => (b ? { posicao: b.posicao, trecho: b.texto.slice(0, 110), jaNovaPagina: !!(b.props.quebraAntes || b.quebraInicio) } : null);
+      // títulos de seção numerados automaticamente pelo estilo? Se não, a introdução leva "1 " no texto
+      const numeracaoAutomatica = ps.some((b) => b.nivel === 1 && b.props.numerado);
+      const textoComum = ps.filter((b) => b.texto && !b.instrucao && !b.emSumario);
+      const primeiraSecao = ps.find((b) => b.nivel === 1 && !semNumeroTitulo(b) && b.texto);
+      // fim dos pré-textuais que já existem: o primeiro parágrafo depois do último deles que
+      // começa página nova ou é um título (o texto do resumo e as palavras-chave ficam com ele)
+      const pres = ORDEM.slice(0, 3).map(([, re]) => achar(re)).filter(Boolean).sort((a, b) => a.posicao - b.posicao);
+      const ultimoPre = pres[pres.length - 1];
+      const aposPre = ultimoPre ? ps.find((b) => b.posicao > ultimoPre.posicao && b.texto && !b.emSumario && !b.instrucao
+        && (b.quebraInicio || b.props.quebraAntes || ehTitulo(b))) : null;
+      const inicioDoTexto = achar(/^INTRODU[ÇC][ÃA]O$/) || primeiraSecao || aposPre || (ultimoPre ? null : textoComum[0]);
+      const CODIGO = { "Resumo": "resumo", "Resumo em língua estrangeira (Abstract)": "abstract", "Sumário": "sumario", "Introdução": "introducao", "Referências": "referencias" };
+      const ondeCriar = (nome) => {
+        if (nome === "Referências") {
+          const anexo = ps.find((b) => b.texto && !b.emSumario && /^(AP[ÊE]NDICE|ANEXO)/.test(normaliza(b.texto)) && ehTitulo(b));
+          return anexo ? { antes: ancora(anexo) } : { fim: true };
+        }
+        const k = ORDEM.findIndex(([n]) => n === nome);
+        const seguinte = nome === "Introdução" ? (primeiraSecao || aposPre || (ultimoPre ? null : textoComum[0]))
+          : ORDEM.slice(k + 1).map(([, re]) => achar(re)).find(Boolean) || inicioDoTexto;
+        return seguinte ? { antes: ancora(seguinte) } : { fim: true };
+      };
+      for (const [nome, re] of exigidos) {
+        if (!presentes(re)) r.problema("erro", nome, "não encontrado no documento",
+          { individual: true, criar: { elemento: CODIGO[nome], nome, novaPagina: !artigo, prefixo: numeracaoAutomatica ? "" : "1 ", ...ondeCriar(nome) } });
+      }
       r.msg(r.it.nivel === "ok" ? (artigo ? "Resumo, introdução e referências encontrados." : "Resumo, abstract, sumário, introdução e referências encontrados.") : "Faltam elementos obrigatórios (ou o título está escrito de outra forma).");
     }
 
@@ -455,7 +488,9 @@
         if (paisagem && (confere({ sup: 3 * CM, dir: 3 * CM, inf: 2 * CM, esq: 2 * CM }) || confere({ inf: 3 * CM, esq: 3 * CM, sup: 2 * CM, dir: 2 * CM }))) return;
         const ruins = Object.entries(esperado).filter(([k, alvo]) => !perto(Math.abs(v[k]), alvo, 30))
           .map(([k, alvo]) => `${{ sup: "superior", inf: "inferior", esq: "esquerda", dir: "direita" }[k]} ${cm(Math.abs(v[k]))} (deveria ser ${cm(alvo)})`);
-        if (ruins.length) rm.problema("erro", nome, ruins.join("; "));
+        // em paisagem, a margem de 3 cm da encadernação vai para cima (a página gira)
+        const alvo = paisagem ? { sup: 3, dir: 3, inf: 2, esq: 2 } : { sup: 3, esq: 3, inf: 2, dir: 2 };
+        if (ruins.length) rm.problema("erro", nome, ruins.join("; "), { margens: { secao: i, ...alvo } });
       });
       rp.msg(rp.it.nivel === "ok" ? "Todas as páginas em A4." : "Configure o papel em Layout > Tamanho > A4.");
       rm.msg(rm.it.nivel === "ok" ? "Margens corretas." : "Ajuste em Layout > Margens > Margens personalizadas.");
@@ -476,7 +511,7 @@
       };
       const cab = Object.keys(arquivos).filter((n) => /^word\/header\d*\.xml$/.test(n)).map(temPagina).filter(Boolean);
       const rod = Object.keys(arquivos).filter((n) => /^word\/footer\d*\.xml$/.test(n)).map(temPagina).filter(Boolean);
-      if (!cab.length && !rod.length) r.problema("erro", "Cabeçalho", "o documento não tem número de página");
+      if (!cab.length && !rod.length) r.problema("erro", "Cabeçalho", "o documento não tem número de página", { paginaNumero: true });
       if (rod.length) r.problema("erro", "Rodapé", "o número de página está no rodapé; a ABNT pede no cabeçalho (canto superior direito)");
       for (const c of cab) if (c.alinhamento !== "direita" && !c.posTab) r.problema("erro", "Cabeçalho", `número de página ${alinhado(c.alinhamento)}; deve ficar à direita`);
       r.msg(r.it.nivel === "ok" ? "Número de página no cabeçalho, alinhado à direita. Lembre que ele só deve aparecer a partir da Introdução." : "Insira o número em Inserir > Número de Página > Início da Página > Número simples 3.");

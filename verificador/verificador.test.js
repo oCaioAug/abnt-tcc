@@ -226,6 +226,32 @@ test("informa a posição de cada parágrafo, mesmo com textos repetidos e tabel
   assert.deepEqual(item(r, "fonte-tamanho").ocorrencias.map((o) => o.posicao), [2, 6]);
 });
 
+// ------------------------------------------------------------ documento fora de qualquer modelo
+test("documento sem estrutura: diz onde criar cada elemento e como corrigir margens e paginação", async () => {
+  const t = (x, extra = {}) => new Paragraph({ children: [new TextRun(x)], ...extra });
+  const semNada = new Document({ sections: [{ children: [t("Exercício de Administração"), t("Resposta da questão 1.")] }] });
+  let r = await rodar(await Packer.toBuffer(semNada));
+  const criar = (rel) => Object.fromEntries(item(rel, "estrutura").ocorrencias.map((o) => [o.correcao.criar.elemento, o.correcao.criar]));
+  let c = criar(r);
+  assert.deepEqual(Object.keys(c), ["resumo", "abstract", "sumario", "introducao", "referencias"]);
+  assert.equal(c.resumo.antes.posicao, 0);
+  assert.equal(c.introducao.antes.posicao, 0);
+  assert.equal(c.introducao.prefixo, "1 ");                 // sem numeração automática
+  assert.deepEqual(c.referencias.fim, true);
+  assert.ok(item(r, "margens").ocorrencias.every((o) => o.correcao.margens.sup === 3 && o.correcao.margens.dir === 2));
+  assert.deepEqual(item(r, "paginacao").ocorrencias[0].correcao, { paginaNumero: true });
+
+  // depois de criar o resumo, o que falta entra depois dele, antes do texto (que começa página nova)
+  const comResumo = new Document({ sections: [{ children: [
+    t("RESUMO", { alignment: AlignmentType.CENTER }), t("Texto do resumo."), t("Palavras-chave: a; b; c."),  // 0, 1, 2
+    t("Exercício de Administração", { pageBreakBefore: true }), t("Resposta da questão 1."),               // 3, 4
+  ] }] });
+  c = criar(await rodar(await Packer.toBuffer(comResumo)));
+  assert.equal(c.resumo, undefined);
+  for (const el of ["abstract", "sumario", "introducao"]) assert.equal(c[el].antes.posicao, 3, el);
+  assert.equal(c.introducao.antes.jaNovaPagina, true);
+});
+
 // ------------------------------------------------------------ casos vistos num TCC real
 test("não acusa paisagem com margens giradas, seção 'Lista de ...' no texto nem SUMÁRIO no estilo do sumário", async () => {
   const a4 = { size: { width: 11906, height: 16838 }, margin: { top: cm(3), left: cm(3), bottom: cm(2), right: cm(2) } };
