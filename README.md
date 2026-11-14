@@ -2,6 +2,8 @@
 
 Modelos de monografia (TCC) e de artigo científico já formatados segundo as normas da ABNT, para Word e LibreOffice.
 
+> Projeto independente, sem vínculo com a ABNT (Associação Brasileira de Normas Técnicas) e sem endosso dela. As explicações das regras são resumos com palavras próprias; o texto das normas é protegido e vendido pela ABNT.
+
 **Site:** https://ocaioaug.github.io/abnt-tcc/ reúne o verificador, o gerador de referências, os modelos para baixar e o passo a passo para instalar o painel no Word. É o link para mandar a quem quiser usar.
 
 ## Arquivos prontos (`dist/`)
@@ -163,3 +165,7 @@ O último passo tira dos arquivos o nome de quem os salvou, que o Word grava aut
 - `src/artigo.js`: conteúdo e estrutura do artigo (reaproveita partes da monografia; usa `estilos({ novaPagina: false })` para o texto corrido).
 - `build.js` também remove o "recomeçar em 1" que a biblioteca docx grava nas listas: o Word às vezes aplicava esse recomeço no meio do texto e numerava uma seção como 1.
 - Para trocar a fonte para Times New Roman, altere `FONTE` em `src/abnt.js`.
+
+## Privacidade
+
+O verificador, o gerador de referências e o painel do Word funcionam no computador de quem usa: o documento não é enviado a nenhum servidor. O site não usa cookies nem coleta dados; o gerador guarda a lista de referências só no navegador (`localStorage`). O site é hospedado no GitHub Pages, que registra acessos conforme a política de privacidade do GitHub.

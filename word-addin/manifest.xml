@@ -12,7 +12,7 @@
   <ProviderName>ABNT TCC</ProviderName>
   <DefaultLocale>pt-BR</DefaultLocale>
   <DisplayName DefaultValue="ABNT para TCC"/>
-  <Description DefaultValue="Verifica a formatação do TCC pelas normas da ABNT e insere referências e citações."/>
+  <Description DefaultValue="Verifica a formatação do TCC pelas normas da ABNT e insere referências e citações. Projeto independente, sem vínculo com a ABNT."/>
   <IconUrl DefaultValue="https://localhost:3000/word-addin/icones/icone-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://localhost:3000/word-addin/icones/icone-64.png"/>
   <SupportUrl DefaultValue="https://localhost:3000/README.md"/>

@@ -117,10 +117,11 @@ test("ordenação alfabética ignora acentos e negrito", () => {
 });
 
 test("NBR 6023:2025: artigo só eletrônico usa a e-localização e o DOI como endereço", () => {
-  const r = ref("artigo", { autores: "L. R. Moura" + String.fromCharCode(10) + "L. M. Torres", titulo: "Fatores associados", periodico: "Revista da Escola de Enfermagem da USP",
-    localPeriodico: "São Paulo", volume: "52", eLocalizador: "e03304", ano: "2018", doi: "10.1590/S1980-220X2017020403304",
-    url: "https://www.scielo.br/j/reeusp/a/x/", acesso: "2023-04-07" });
-  assert.equal(r.texto, "MOURA, L. R.; TORRES, L. M. Fatores associados. Revista da Escola de Enfermagem da USP, São Paulo, v. 52, e03304, 2018. DOI: https://doi.org/10.1590/S1980-220X2017020403304. Disponível em: https://www.scielo.br/j/reeusp/a/x/. Acesso em: 7 abr. 2023.");
+  // dados inventados (não copiados de exemplos da norma)
+  const r = ref("artigo", { autores: "Joana Prado" + String.fromCharCode(10) + "Rui Andrade", titulo: "Leitura digital no ensino médio", periodico: "Revista de Educação e Tecnologia",
+    localPeriodico: "Curitiba", volume: "8", eLocalizador: "e2104", ano: "2024", doi: "10.0000/ret.2024.2104",
+    url: "https://revista.exemplo.br/ret/2104", acesso: "2025-03-10" });
+  assert.equal(r.texto, "PRADO, Joana; ANDRADE, Rui. Leitura digital no ensino médio. Revista de Educação e Tecnologia, Curitiba, v. 8, e2104, 2024. DOI: https://doi.org/10.0000/ret.2024.2104. Disponível em: https://revista.exemplo.br/ret/2104. Acesso em: 10 mar. 2025.");
 });
 
 test("NBR 6023:2025: trabalho em evento sem a cidade do evento", () => {

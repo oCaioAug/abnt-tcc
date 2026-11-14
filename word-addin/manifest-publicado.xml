@@ -12,7 +12,7 @@
   <ProviderName>ABNT TCC</ProviderName>
   <DefaultLocale>pt-BR</DefaultLocale>
   <DisplayName DefaultValue="ABNT para TCC"/>
-  <Description DefaultValue="Verifica a formatação do TCC pelas normas da ABNT e insere referências e citações."/>
+  <Description DefaultValue="Verifica a formatação do TCC pelas normas da ABNT e insere referências e citações. Projeto independente, sem vínculo com a ABNT."/>
   <IconUrl DefaultValue="https://ocaioaug.github.io/abnt-tcc/word-addin/icones/icone-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://ocaioaug.github.io/abnt-tcc/word-addin/icones/icone-64.png"/>
   <SupportUrl DefaultValue="https://ocaioaug.github.io/abnt-tcc/README.md"/>
